@@ -128,7 +128,6 @@ function Login() {
       showNotification("success", "Login Berhasil!", "Selamat datang!");
       // Navigation handled by useEffect
     } catch (error) {
-      console.error("Login error:", error);
       showNotification(
         "error",
         "Login Gagal!",
@@ -323,18 +322,6 @@ function Login() {
               )}
             </button>
           </form>
-
-          {/* Demo Info */}
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
-            <div className="text-center">
-              <p className="text-sm text-blue-900 dark:text-blue-200 mb-2">
-                <strong>Demo Credentials:</strong>
-              </p>
-              <p className="text-xs text-blue-800 dark:text-blue-300">
-                Username: admin | Password: pastibisa
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </div>

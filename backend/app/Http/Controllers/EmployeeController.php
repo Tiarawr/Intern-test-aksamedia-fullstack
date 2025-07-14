@@ -41,14 +41,6 @@ class EmployeeController extends Controller
 
     public function store(Request $request)
     {
-        // Debug logging
-        Log::info('Employee Store Request', [
-            'all_data' => $request->all(),
-            'files' => $request->allFiles(),
-            'has_image' => $request->hasFile('image'),
-            'image_type' => $request->hasFile('image') ? get_class($request->file('image')) : 'none'
-        ]);
-
         $request->validate([
             'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg|max:2048', // Accept file uploads, including svg
             'name' => 'required|string|max:255',

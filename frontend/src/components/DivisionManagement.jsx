@@ -1,8 +1,75 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Plus, Search, Edit, Trash2, Briefcase } from "lucide-react";
 import { divisionsAPI } from "../../services/api";
 import { useTheme } from "../contexts/ThemeContext";
 import DivisionFormModal from "./DivisionFormModal";
+
+// Notification Component
+function Notification({ show, type, title, message, onClose }) {
+  return (
+    <div
+      className={`fixed top-20 right-4 z-50 min-w-80 px-4 py-3 rounded-lg shadow-lg border flex items-center space-x-3 transition-all duration-300 ${
+        show ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
+      } ${
+        type === "error"
+          ? "border-red-200 bg-red-50 dark:bg-red-900/20 dark:border-red-700 text-red-800 dark:text-red-200"
+          : "border-green-200 bg-green-50 dark:bg-green-900/20 dark:border-green-700 text-green-800 dark:text-green-200"
+      }`}
+    >
+      <div className="flex-shrink-0">
+        {type === "error" ? (
+          <div className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+            <svg
+              className="w-4 h-4 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          </div>
+        ) : (
+          <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+            <svg
+              className="w-4 h-4 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
+        )}
+      </div>
+      <div>
+        <div className="font-medium text-sm">{title}</div>
+        <div className="text-xs mt-1 opacity-90">{message}</div>
+      </div>
+      <button
+        onClick={onClose}
+        className="ml-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+      >
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fillRule="evenodd"
+            d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+    </div>
+  );
+}
 
 export default function DivisionManagement() {
   const [divisions, setDivisions] = useState([]);
@@ -11,6 +78,25 @@ export default function DivisionManagement() {
   const [showModal, setShowModal] = useState(false);
   const [selectedDivision, setSelectedDivision] = useState(null);
   const { isDark } = useTheme();
+
+  // Notification state
+  const [notif, setNotif] = useState({
+    show: false,
+    type: "success",
+    title: "",
+    message: "",
+  });
+  const notifTimeout = useRef();
+
+  // Show notification
+  const showNotification = (type, title, message) => {
+    setNotif({ show: true, type, title, message });
+    clearTimeout(notifTimeout.current);
+    notifTimeout.current = setTimeout(
+      () => setNotif((n) => ({ ...n, show: false })),
+      4000
+    );
+  };
 
   // Fetch divisions
   const fetchDivisions = async () => {
@@ -21,7 +107,7 @@ export default function DivisionManagement() {
         setDivisions(response.data.divisions);
       }
     } catch (error) {
-      console.error("Error fetching divisions:", error);
+      // Silent fail for divisions
     } finally {
       setIsLoading(false);
     }
@@ -46,10 +132,11 @@ export default function DivisionManagement() {
       try {
         const response = await divisionsAPI.delete(divisionId);
         if (response.status === "success") {
+          showNotification("success", "Berhasil", "Divisi berhasil dihapus");
           fetchDivisions(); // Refresh list
         }
       } catch (error) {
-        alert("Gagal menghapus divisi: " + error.message);
+        showNotification("error", "Error", "Gagal menghapus divisi: " + error.message);
       }
     }
   };
@@ -59,12 +146,21 @@ export default function DivisionManagement() {
       action === "created"
         ? "Divisi berhasil ditambahkan!"
         : "Divisi berhasil diperbarui!";
-    alert(message);
+    showNotification("success", "Berhasil", message);
     fetchDivisions(); // Refresh list
   };
 
   return (
     <div className={`p-6 ${isDark ? "text-white" : "text-gray-900"}`}>
+      {/* Notification */}
+      <Notification
+        show={notif.show}
+        type={notif.type}
+        title={notif.title}
+        message={notif.message}
+        onClose={() => setNotif((n) => ({ ...n, show: false }))}
+      />
+
       {/* Header */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-2">Manajemen Divisi</h2>

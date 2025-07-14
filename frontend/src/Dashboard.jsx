@@ -144,10 +144,10 @@ function Pagination({
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
-          className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+          className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 border ${
             currentPage === 1
-              ? "opacity-50 cursor-not-allowed"
-              : "text-gray-600 hover:text-white hover:bg-gray-700 border border-gray-300" // Consistent colors
+              ? "opacity-50 cursor-not-allowed text-gray-400 dark:text-gray-500 border-gray-300 dark:border-gray-600"
+              : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-300 dark:border-gray-600"
           }`}
         >
           <ChevronLeft className="w-4 h-4 mr-1" />
@@ -260,7 +260,6 @@ export default function Dashboard() {
         const divisionsRes = await divisionsAPI.getAll();
         setDivisions(divisionsRes.data?.divisions || []);
       } catch (error) {
-        console.error('Error loading divisions:', error);
         setDivisions([]); // Fallback to empty array
       }
       
@@ -273,13 +272,11 @@ export default function Dashboard() {
         });
         setEmployees(employeesRes.data?.employees || []);
       } catch (error) {
-        console.error('Error loading employees:', error);
         setEmployees([]); // Fallback to empty array
         showNotification('error', 'Error', 'Failed to load employees data');
       }
       
     } catch (error) {
-      console.error('Error loading data:', error);
       showNotification('error', 'Error', 'Failed to load data');
     } finally {
       setIsLoading(false);
@@ -325,7 +322,6 @@ export default function Dashboard() {
         loadData(); // Reload data
       } catch (error) {
         showNotification('error', 'Error', 'Failed to delete employee');
-        console.error('Delete error:', error);
       }
     }
   };
@@ -349,7 +345,6 @@ export default function Dashboard() {
       loadData(); // Reload data
     } catch (error) {
       showNotification('error', 'Error', 'Failed to save employee');
-      console.error('Save error:', error);
     }
   };
 
@@ -415,7 +410,6 @@ export default function Dashboard() {
     try {
       await logout();
     } catch (error) {
-      console.error('Logout error:', error);
       showNotification("error", "Error", "Logout failed");
     }
   };

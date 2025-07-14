@@ -90,7 +90,6 @@ export default function DivisionFormModal({
         throw new Error(response.message || "Operation failed");
       }
     } catch (error) {
-      console.error("Form submission error:", error);
       setErrors({
         submit: error.message || "Terjadi kesalahan pada server",
       });

@@ -6,13 +6,8 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-// Debug middleware untuk login only
-Route::middleware([
-    'App\Http\Middleware\DebugRequest', 
-    'App\Http\Middleware\NormalizeJson'
-])->group(function () {
-    Route::post('login', [AuthController::class, 'login']);
-});
+// Public routes
+Route::post('login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('divisions', [DivisionController::class, 'index']); // Tugas 2
