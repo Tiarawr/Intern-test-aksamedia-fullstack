@@ -4,10 +4,21 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DivisionController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\UserController;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 // Public routes
 Route::post('login', [AuthController::class, 'login']);
+
+// Test authentication endpoint
+Route::middleware('auth:sanctum')->get('auth-test', function (Request $request) {
+    return response()->json([
+        'status' => 'success',
+        'message' => 'Authentication working',
+        'user' => $request->user(),
+        'token_abilities' => $request->user()->currentAccessToken()->abilities ?? [],
+    ]);
+});
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('divisions', [DivisionController::class, 'index']); // Tugas 2

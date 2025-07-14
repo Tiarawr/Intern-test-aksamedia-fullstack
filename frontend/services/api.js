@@ -274,3 +274,18 @@ export const userAPI = {
   getProfile: () => apiService.getProfile(),
   updateProfile: (data) => apiService.updateProfile(data),
 };
+
+// Test API endpoints
+export const testAPI = {
+  // Test authentication with Railway
+  testAuth: async () => {
+    try {
+      const response = await apiService.makeRequest('/auth-test');
+      console.log('✅ Auth Test Success:', response);
+      return response;
+    } catch (error) {
+      console.error('❌ Auth Test Failed:', error);
+      throw error;
+    }
+  },
+};
