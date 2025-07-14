@@ -39,7 +39,7 @@ function DeleteConfirmationModal({ isOpen, onClose, onConfirm, employeeName }) {
           <div className="flex justify-center gap-4">
             <button
               onClick={onClose}
-              className="px-6 py-3 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition-colors"
+              className="px-6 py-3 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-400 transition-colors"
             >
               Tidak
             </button>

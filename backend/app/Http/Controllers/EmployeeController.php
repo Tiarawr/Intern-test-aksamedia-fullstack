@@ -22,7 +22,9 @@ class EmployeeController extends Controller
             $query->where('division_id', $request->division_id);
         }
 
-        $employees = $query->paginate(10);
+        // Allow custom per_page, default to 3 to show pagination
+        $perPage = $request->get('per_page', 3);
+        $employees = $query->paginate($perPage);
 
         return response()->json([
             'status' => 'success',

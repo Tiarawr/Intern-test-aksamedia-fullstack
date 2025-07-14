@@ -141,12 +141,12 @@ class ApiService {
     });
   }
 
-  // 2. Get All Divisions
+  // 2. Get All Divisions (PUBLIC - no auth required)
   async getDivisions(name = "") {
     const params = new URLSearchParams();
     if (name) params.append("name", name);
 
-    return this.makeRequest(`/divisions?${params}`);
+    return this.makePublicRequest(`/divisions?${params}`);
   }
 
   // Create Division
@@ -172,14 +172,15 @@ class ApiService {
     });
   }
 
-  // 3. Get All Employees
+  // 3. Get All Employees (PUBLIC - no auth required)
   async getEmployees(filters = {}) {
     const params = new URLSearchParams();
     if (filters.name) params.append("name", filters.name);
     if (filters.division_id) params.append("division_id", filters.division_id);
     if (filters.page) params.append("page", filters.page);
+    if (filters.per_page) params.append("per_page", filters.per_page);
 
-    return this.makeRequest(`/employees?${params}`);
+    return this.makePublicRequest(`/employees?${params}`);
   }
 
   // 4. Create Employee

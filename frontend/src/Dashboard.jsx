@@ -224,6 +224,12 @@ export default function Dashboard() {
   const [employees, setEmployees] = useState([]);
   const [divisions, setDivisions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    per_page: 3,
+    total: 0,
+  });
 
   // Tab state
   const [activeTab, setActiveTab] = useState("employees");
@@ -263,14 +269,21 @@ export default function Dashboard() {
         setDivisions([]); // Fallback to empty array
       }
       
-      // Load employees
+      // Load employees with server-side pagination
       try {
         const employeesRes = await employeesAPI.getAll({
           page: currentPage,
           name: searchQuery,
-          division_id: selectedDivision
+          division_id: selectedDivision,
+          per_page: 3 // Use smaller page size to show pagination
         });
         setEmployees(employeesRes.data?.employees || []);
+        setPagination(employeesRes.pagination || {
+          current_page: 1,
+          last_page: 1,
+          per_page: 3,
+          total: 0,
+        });
       } catch (error) {
         setEmployees([]); // Fallback to empty array
         showNotification('error', 'Error', 'Failed to load employees data');
@@ -348,25 +361,14 @@ export default function Dashboard() {
     }
   };
 
-  // Filter employees based on search and division
-  const filteredEmployees = (employees || []).filter((employee) => {
-    const matchesSearch = employee.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesDivision = selectedDivision
-      ? employee.division.id.toString() === selectedDivision
-      : true;
-    return matchesSearch && matchesDivision;
-  });
+  // Use server-side pagination - no client-side filtering needed
+  const displayedEmployees = employees || [];
 
-  // Pagination logic (fixed to use filtered data)
-  const itemsPerPage = 6;
-  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedEmployees = filteredEmployees.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
+  // Use pagination metadata from server
+  const itemsPerPage = pagination.per_page;
+  const totalPages = pagination.last_page;
+  const totalItems = pagination.total;
+  const currentPageFromServer = pagination.current_page;
 
   // CRUD Functions
   const handleAddEmployee = () => {
@@ -599,7 +601,7 @@ export default function Dashboard() {
         {!isLoading && (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {paginatedEmployees.map((employee) => (
+              {displayedEmployees.map((employee) => (
                 <div
                   key={employee.id}
                   className="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg hover:scale-[1.02] bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700"
@@ -688,17 +690,17 @@ export default function Dashboard() {
 
             {/* Enhanced Pagination */}
             <Pagination
-              currentPage={currentPage}
+              currentPage={currentPageFromServer}
               totalPages={totalPages}
               onPageChange={handlePageChange}
-              totalItems={filteredEmployees.length}
+              totalItems={totalItems}
               itemsPerPage={itemsPerPage}
             />
           </>
         )}
 
         {/* No Results Message */}
-        {!isLoading && paginatedEmployees.length === 0 && (
+        {!isLoading && displayedEmployees.length === 0 && (
           <div className="text-center py-12">
             <Search
               className="w-16 h-16 mx-auto mb-4 text-gray-500 dark:text-gray-400"
