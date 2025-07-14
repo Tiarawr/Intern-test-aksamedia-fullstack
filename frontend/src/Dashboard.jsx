@@ -15,7 +15,7 @@ import {
   MoreHorizontal,
 } from "lucide-react";
 import Header from "./components/Header";
-import DeleteConfirmationModal from "./components/DeleteConfirmationModal ";
+import DeleteConfirmationModal from "./components/DeleteConfirmationModal";
 import EmployeeFormModal from "./components/EmployeeFormModal";
 import DivisionManagement from "./components/DivisionManagement";
 import { employeesAPI, divisionsAPI } from "../services/api";
