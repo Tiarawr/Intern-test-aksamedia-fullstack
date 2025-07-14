@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useSearchParams } from 'react-router-dom';
-import { useAuth } from './contexts/AuthContext';
+import { useSearchParams } from "react-router-dom";
+import { useAuth } from "./contexts/AuthContext";
 import {
   Search,
   Users,
@@ -8,14 +8,12 @@ import {
   Briefcase,
   Plus,
   Edit,
-  Trash2,
   ChevronLeft,
   ChevronRight,
   Filter,
   MoreHorizontal,
 } from "lucide-react";
 import Header from "./components/Header";
-import DeleteConfirmationModal from "./components/DeleteConfirmationModal";
 import EmployeeFormModal from "./components/EmployeeFormModal";
 import DivisionManagement from "./components/DivisionManagement";
 import { employeesAPI, divisionsAPI } from "../services/api";
@@ -199,7 +197,7 @@ function Pagination({
 // Helper function to get full image URL
 const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
-  if (imagePath.startsWith('http')) return imagePath; // Already full URL
+  if (imagePath.startsWith("http")) return imagePath; // Already full URL
   const fullUrl = `http://127.0.0.1:8000/storage/${imagePath}`;
   return fullUrl;
 };
@@ -208,17 +206,21 @@ const getImageUrl = (imagePath) => {
 export default function Dashboard() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { isAuthenticated } = useAuth();
-  
+
   // Get initial state from URL parameters
-  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || "");
-  const [selectedDivision, setSelectedDivision] = useState(searchParams.get('division') || "");
-  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams.get("search") || ""
+  );
+  const [selectedDivision, setSelectedDivision] = useState(
+    searchParams.get("division") || ""
+  );
+  const [currentPage, setCurrentPage] = useState(
+    parseInt(searchParams.get("page")) || 1
+  );
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [employeeToDelete, setEmployeeToDelete] = useState(null);
 
   // API state
   const [employees, setEmployees] = useState([]);
@@ -260,7 +262,7 @@ export default function Dashboard() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      
+
       // Load divisions first (doesn't require auth for basic info)
       try {
         const divisionsRes = await divisionsAPI.getAll();
@@ -268,29 +270,30 @@ export default function Dashboard() {
       } catch (error) {
         setDivisions([]); // Fallback to empty array
       }
-      
+
       // Load employees with server-side pagination
       try {
         const employeesRes = await employeesAPI.getAll({
           page: currentPage,
           name: searchQuery,
           division_id: selectedDivision,
-          per_page: 3 // Use smaller page size to show pagination
+          per_page: 3, // Use smaller page size to show pagination
         });
         setEmployees(employeesRes.data?.employees || []);
-        setPagination(employeesRes.pagination || {
-          current_page: 1,
-          last_page: 1,
-          per_page: 3,
-          total: 0,
-        });
+        setPagination(
+          employeesRes.pagination || {
+            current_page: 1,
+            last_page: 1,
+            per_page: 3,
+            total: 0,
+          }
+        );
       } catch (error) {
         setEmployees([]); // Fallback to empty array
-        showNotification('error', 'Error', 'Failed to load employees data');
+        showNotification("error", "Error", "Failed to load employees data");
       }
-      
     } catch (error) {
-      showNotification('error', 'Error', 'Failed to load data');
+      showNotification("error", "Error", "Failed to load data");
     } finally {
       setIsLoading(false);
     }
@@ -306,7 +309,7 @@ export default function Dashboard() {
     updateURLParams({
       search: searchQuery,
       division: selectedDivision,
-      page: currentPage > 1 ? currentPage : null
+      page: currentPage > 1 ? currentPage : null,
     });
   }, [searchQuery, selectedDivision, currentPage]);
 
@@ -318,47 +321,6 @@ export default function Dashboard() {
       () => setNotif((n) => ({ ...n, show: false })),
       4000
     );
-  };
-
-  // Delete functions
-  const confirmDelete = async () => {
-    if (employeeToDelete) {
-      try {
-        await employeesAPI.delete(employeeToDelete.id);
-        setIsDeleteModalOpen(false);
-        showNotification(
-          "success",
-          "Berhasil",
-          `${employeeToDelete.name} berhasil dihapus`
-        );
-        setEmployeeToDelete(null);
-        loadData(); // Reload data
-      } catch (error) {
-        showNotification('error', 'Error', 'Failed to delete employee');
-      }
-    }
-  };
-
-  const cancelDelete = () => {
-    setIsDeleteModalOpen(false);
-    setEmployeeToDelete(null);
-  };
-
-  const handleSaveEmployee = async (employeeData) => {
-    try {
-      if (editingEmployee) {
-        await employeesAPI.update(editingEmployee.id, employeeData);
-        showNotification("success", "Berhasil", "Data karyawan berhasil diupdate");
-      } else {
-        await employeesAPI.create(employeeData);
-        showNotification("success", "Berhasil", "Karyawan baru berhasil ditambahkan");
-      }
-      setIsModalOpen(false);
-      setEditingEmployee(null);
-      loadData(); // Reload data
-    } catch (error) {
-      showNotification('error', 'Error', 'Failed to save employee');
-    }
   };
 
   // Use server-side pagination - no client-side filtering needed
@@ -381,21 +343,27 @@ export default function Dashboard() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteEmployee = (employee) => {
-    setEmployeeToDelete(employee);
-    setIsDeleteModalOpen(true);
-  };
-
   const handleFormSuccess = async (action, employeeData) => {
     if (action === "created") {
       showNotification("success", "Berhasil", "Karyawan berhasil ditambahkan");
+      // Reset ke halaman 1 untuk melihat data terbaru
+      setCurrentPage(1);
     } else {
-      showNotification("success", "Berhasil", "Data karyawan berhasil diupdate");
+      showNotification(
+        "success",
+        "Berhasil", 
+        "Data karyawan berhasil diupdate"
+      );
     }
-    
-    // Reload data from server instead of manually updating local state
-    await loadData();
+
+    // Reload data from server to get latest data
     setIsModalOpen(false);
+    setEditingEmployee(null);
+    
+    // Delay untuk memastikan modal tertutup sebelum reload
+    setTimeout(() => {
+      loadData();
+    }, 100);
   };
 
   // Reset to first page when search changes
@@ -438,13 +406,7 @@ export default function Dashboard() {
         onSuccess={handleFormSuccess}
       />
 
-      {/* Delete Confirmation Modal */}
-      <DeleteConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={cancelDelete}
-        onConfirm={confirmDelete}
-        employeeName={employeeToDelete?.name}
-      />
+
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -508,231 +470,196 @@ export default function Dashboard() {
               </button>
             </div>
 
-        {/* Search and Filter Bar */}
-        <div className="mb-8 flex flex-col sm:flex-row gap-4">
-          {/* Search Bar */}
-          <div className="relative flex-1">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search
-                className="w-5 h-5 text-gray-500 dark:text-gray-400"
-              />
-            </div>
-            <input
-              type="text"
-              placeholder="Cari nama karyawan..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border rounded-xl transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none"
-            />
-          </div>
-
-          {/* Division Filter */}
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Filter className="w-5 h-5 text-gray-500 dark:text-gray-400" />
-            </div>
-            <select
-              value={selectedDivision}
-              onChange={(e) => setSelectedDivision(e.target.value)}
-              className="pl-10 pr-8 py-3 border rounded-xl transition-all duration-200 min-w-[200px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none"
-            >
-              <option value="">Semua Divisi</option>
-              {(divisions || []).map((division) => (
-                <option key={division.id} value={division.id}>
-                  {division.name}
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <div className="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
-                <Users className="w-6 h-6 text-blue-600" />
+            {/* Search and Filter Bar */}
+            <div className="mb-8 flex flex-col sm:flex-row gap-4">
+              {/* Search Bar */}
+              <div className="relative flex-1">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Cari nama karyawan..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 border rounded-xl transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none"
+                />
               </div>
-              <div className="ml-4">
-                <p
-                  className="text-2xl font-bold text-gray-900 dark:text-white"
+
+              {/* Division Filter */}
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Filter className="w-5 h-5 text-gray-500 dark:text-gray-400" />
+                </div>
+                <select
+                  value={selectedDivision}
+                  onChange={(e) => setSelectedDivision(e.target.value)}
+                  className="pl-10 pr-8 py-3 border rounded-xl transition-all duration-200 min-w-[200px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none"
                 >
-                  {(employees || []).length}
-                </p>
-                <p
-                  className="text-sm text-gray-600 dark:text-gray-400"
-                >
-                  Total Karyawan
-                </p>
+                  <option value="">Semua Divisi</option>
+                  {(divisions || []).map((division) => (
+                    <option key={division.id} value={division.id}>
+                      {division.name}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
-          </div>
 
-          <div className="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                <Briefcase className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                  {(divisions || []).length}
-                </p>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
-                  Total Divisi
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Loading State */}
-        {isLoading && (
-          <div className="text-center py-12">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p
-              className="mt-2 text-gray-600 dark:text-gray-400"
-            >
-              Memuat data...
-            </p>
-          </div>
-        )}
-
-        {/* Employee Cards Grid */}
-        {!isLoading && (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {displayedEmployees.map((employee) => (
-                <div
-                  key={employee.id}
-                  className="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg hover:scale-[1.02] bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700"
-                >
-                  {/* Header with Avatar */}
-                  <div className="flex items-center mb-4">
-                    <img
-                      src={
-                        getImageUrl(employee.image) ||
-                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                          employee.name
-                        )}&background=6366f1&color=fff&size=48`
-                      }
-                      alt={employee.name}
-                      className="w-12 h-12 rounded-full object-cover"
-                      onError={(e) => {
-                        // Fallback to avatar if image fails to load
-                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                          employee.name
-                        )}&background=6366f1&color=fff&size=48`;
-                      }}
-                    />
-                    <div className="ml-3 flex-1">
-                      <h3
-                        className="text-lg font-semibold text-gray-900 dark:text-white"
-                      >
-                        {employee.name}
-                      </h3>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex space-x-2 ml-2">
-                      <button
-                        onClick={() => handleEditEmployee(employee)}
-                        className="p-2 rounded-lg transition-all duration-200 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700"
-                        title="Edit Karyawan"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteEmployee(employee)}
-                        className="p-2 rounded-lg transition-all duration-200 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-gray-700"
-                        title="Hapus Karyawan"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <Users className="w-6 h-6 text-blue-600" />
                   </div>
-
-                  {/* Employee Details */}
-                  <div className="space-y-3">
-                    {/* Division and Position */}
-                    <div>
-                      <div className="flex items-center space-x-2 mb-1">
-                        <Briefcase
-                          className="w-4 h-4 text-gray-500 dark:text-gray-400"
-                        />
-                        <p
-                          className="font-medium text-gray-900 dark:text-white"
-                        >
-                          {employee.division?.name || "No Division"}
-                        </p>
-                      </div>
-                      <p
-                        className="text-sm ml-6 text-gray-600 dark:text-gray-400"
-                      >
-                        {employee.position}
-                      </p>
-                    </div>
-
-                    {/* Contact Info */}
-                    <div className="flex items-center space-x-2">
-                      <Phone
-                        className="w-4 h-4 text-gray-500 dark:text-gray-400"
-                      />
-                      <p
-                        className="text-sm text-gray-600 dark:text-gray-400"
-                      >
-                        {employee.phone}
-                      </p>
-                    </div>
+                  <div className="ml-4">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {(employees || []).length}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Total Karyawan
+                    </p>
                   </div>
                 </div>
-              ))}
+              </div>
+
+              <div className="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
+                <div className="flex items-center">
+                  <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                    <Briefcase className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {(divisions || []).length}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      Total Divisi
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* Enhanced Pagination */}
-            <Pagination
-              currentPage={currentPageFromServer}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-              totalItems={totalItems}
-              itemsPerPage={itemsPerPage}
-            />
-          </>
-        )}
+            {/* Loading State */}
+            {isLoading && (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p className="mt-2 text-gray-600 dark:text-gray-400">
+                  Memuat data...
+                </p>
+              </div>
+            )}
 
-        {/* No Results Message */}
-        {!isLoading && displayedEmployees.length === 0 && (
-          <div className="text-center py-12">
-            <Search
-              className="w-16 h-16 mx-auto mb-4 text-gray-500 dark:text-gray-400"
-            />
-            <h3
-              className="text-xl font-semibold mb-2 text-gray-900 dark:text-white"
-            >
-              Tidak ada hasil ditemukan
-            </h3>
-            <p
-              className="mb-6 text-gray-600 dark:text-gray-400"
-            >
-              Coba ubah kata kunci pencarian atau filter Anda
-            </p>
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedDivision("");
-              }}
-              className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors duration-200"
-            >
-              Reset Filter
-            </button>
-          </div>
-        )}
+            {/* Employee Cards Grid */}
+            {!isLoading && (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                  {displayedEmployees.map((employee) => (
+                    <div
+                      key={employee.id}
+                      className="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg hover:scale-[1.02] bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+                    >
+                      {/* Header with Avatar */}
+                      <div className="flex items-center mb-4">
+                        <img
+                          src={
+                            getImageUrl(employee.image) ||
+                            `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                              employee.name
+                            )}&background=6366f1&color=fff&size=48`
+                          }
+                          alt={employee.name}
+                          className="w-12 h-12 rounded-full object-cover"
+                          onError={(e) => {
+                            // Fallback to avatar if image fails to load
+                            e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                              employee.name
+                            )}&background=6366f1&color=fff&size=48`;
+                          }}
+                        />
+                        <div className="ml-3 flex-1">
+                          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            {employee.name}
+                          </h3>
+                        </div>
+
+                        {/* Action Buttons */}
+                        <div className="flex space-x-2 ml-2">
+                          <button
+                            onClick={() => handleEditEmployee(employee)}
+                            className="p-2 rounded-lg transition-all duration-200 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700"
+                            title="Edit Karyawan"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Employee Details */}
+                      <div className="space-y-3">
+                        {/* Division and Position */}
+                        <div>
+                          <div className="flex items-center space-x-2 mb-1">
+                            <Briefcase className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                            <p className="font-medium text-gray-900 dark:text-white">
+                              {employee.division?.name || "No Division"}
+                            </p>
+                          </div>
+                          <p className="text-sm ml-6 text-gray-600 dark:text-gray-400">
+                            {employee.position}
+                          </p>
+                        </div>
+
+                        {/* Contact Info */}
+                        <div className="flex items-center space-x-2">
+                          <Phone className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {employee.phone}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Enhanced Pagination */}
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  totalItems={totalItems}
+                  itemsPerPage={itemsPerPage}
+                />
+              </>
+            )}
+
+            {/* No Results Message */}
+            {!isLoading && displayedEmployees.length === 0 && (
+              <div className="text-center py-12">
+                <Search className="w-16 h-16 mx-auto mb-4 text-gray-500 dark:text-gray-400" />
+                <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-white">
+                  Tidak ada hasil ditemukan
+                </h3>
+                <p className="mb-6 text-gray-600 dark:text-gray-400">
+                  Coba ubah kata kunci pencarian atau filter Anda
+                </p>
+                <button
+                  onClick={() => {
+                    setSearchQuery("");
+                    setSelectedDivision("");
+                  }}
+                  className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors duration-200"
+                >
+                  Reset Filter
+                </button>
+              </div>
+            )}
           </>
         )}
 
         {/* Divisions Tab Content */}
-        {activeTab === "divisions" && (
-          <DivisionManagement />
-        )}
+        {activeTab === "divisions" && <DivisionManagement />}
       </main>
 
       {/* Test Components */}
