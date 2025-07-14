@@ -32,13 +32,24 @@ class AuthController extends Controller
         
         // If normal input parsing fails, try manual JSON parsing
         if (!$username || !$password) {
-            $jsonData = json_decode($request->getContent(), true);
-            Log::info('Manual JSON parsing', [
-                'raw_content' => $request->getContent(),
-                'parsed_json' => $jsonData,
+            $rawContent = $request->getContent();
+            Log::info('Attempting manual JSON parsing', [
+                'raw_content' => $rawContent,
             ]);
             
-            if ($jsonData) {
+            // Clean the JSON (remove trailing comma)
+            $cleanedJson = preg_replace('/,\s*}/', '}', $rawContent);
+            $cleanedJson = preg_replace('/,\s*]/', ']', $cleanedJson);
+            
+            $jsonData = json_decode($cleanedJson, true);
+            
+            Log::info('Manual JSON parsing result', [
+                'cleaned_json' => $cleanedJson,
+                'parsed_json' => $jsonData,
+                'json_error' => json_last_error_msg(),
+            ]);
+            
+            if ($jsonData && is_array($jsonData)) {
                 $username = $jsonData['username'] ?? null;
                 $password = $jsonData['password'] ?? null;
             }

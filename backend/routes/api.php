@@ -7,7 +7,10 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 // Debug middleware untuk login only
-Route::middleware(['App\Http\Middleware\DebugRequest'])->group(function () {
+Route::middleware([
+    'App\Http\Middleware\DebugRequest', 
+    'App\Http\Middleware\NormalizeJson'
+])->group(function () {
     Route::post('login', [AuthController::class, 'login']);
 });
 
