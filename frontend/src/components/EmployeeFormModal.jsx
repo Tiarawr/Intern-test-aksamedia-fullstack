@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { X, Upload, User, Phone, Briefcase, Camera } from "lucide-react";
 import { employeesAPI } from "../../services/api";
 import { useTheme } from "../contexts/ThemeContext";
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 
 // Helper function to get full image URL
 const getImageUrl = (imagePath) => {
@@ -18,15 +19,6 @@ export default function EmployeeFormModal({
   divisions = [],
   onSuccess,
 }) {
-  // Debug logging
-  useEffect(() => {
-    console.log('🏢 EmployeeFormModal props:', {
-      isOpen,
-      employee,
-      divisions: divisions?.length || 0,
-    });
-  }, [isOpen, employee, divisions]);
-
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -38,6 +30,9 @@ export default function EmployeeFormModal({
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const { isDark } = useTheme();
+
+  // Lock body scroll when modal is open
+  useBodyScrollLock(isOpen);
 
   // Set form data if editing
   useEffect(() => {
@@ -169,16 +164,16 @@ export default function EmployeeFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className="absolute inset-0 z-60 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
       {/* Background overlay with blur effect */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
         onClick={onClose}
       />
 
       {/* Modal container */}
       <div
-        className={`relative w-full max-w-md transform transition-all duration-300 scale-100 ${
+        className={`relative w-full max-w-md transform transition-all duration-300 scale-100 my-8 ${
           isDark ? "text-white" : "text-gray-900"
         }`}
       >

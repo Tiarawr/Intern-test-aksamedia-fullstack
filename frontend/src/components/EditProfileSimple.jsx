@@ -1,9 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { X } from "lucide-react";
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 
 const EditProfile = ({ isOpen, onClose }) => {
   const { user, updateDisplayName } = useAuth();
+  
+  // Lock body scroll when modal is open
+  useBodyScrollLock(isOpen);
+  
   const [formData, setFormData] = useState({
     name: "",
   });

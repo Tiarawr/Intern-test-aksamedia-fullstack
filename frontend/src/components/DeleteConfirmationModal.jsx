@@ -1,19 +1,23 @@
 import React from "react";
 import { X } from "lucide-react";
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 
 function DeleteConfirmationModal({ isOpen, onClose, onConfirm, employeeName }) {
+  // Lock body scroll when modal is open
+  useBodyScrollLock(isOpen);
+
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
       {/* Background Overlay */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
         onClick={onClose}
       />
 
       {/* Modal Container */}
-      <div className="relative max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg">
+      <div className="relative max-w-md w-full bg-white dark:bg-gray-800 rounded-xl shadow-lg my-8">
         <div className="flex items-center justify-between p-4 border-b dark:border-gray-700">
           <h3 className="text-lg font-semibold dark:text-white">
             Konfirmasi Hapus

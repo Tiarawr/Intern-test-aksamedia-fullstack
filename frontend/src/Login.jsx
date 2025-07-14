@@ -6,7 +6,7 @@ import SimpleHeader from "./components/SimpleHeader";
 function Notification({ show, type, title, message, onClose }) {
   return (
     <div
-      className={`fixed top-4 right-4 z-50 min-w-80 px-4 py-3 rounded-lg shadow-lg border flex items-center space-x-3 transition-all duration-300 ${
+      className={`fixed top-20 right-4 z-40 min-w-80 px-4 py-3 rounded-lg shadow-lg border flex items-center space-x-3 transition-all duration-300 ${
         show ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
       } ${
         type === "error"
@@ -142,7 +142,7 @@ function Login() {
   return (
     <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
       <SimpleHeader />
-      
+
       {/* Notification */}
       <Notification
         show={notif.show}
@@ -152,7 +152,10 @@ function Login() {
         onClose={() => setNotif((n) => ({ ...n, show: false }))}
       />
 
-      <div className="flex items-center justify-center min-h-screen px-4">
+      <div
+        className="flex items-center justify-center px-4 py-16"
+        style={{ minHeight: "calc(100vh - 4rem)" }}
+      >
         <div className="w-full max-w-md p-8 rounded-lg border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-lg">
           {/* Header */}
           <div className="text-center mb-8">
@@ -324,10 +327,10 @@ function Login() {
           {/* Demo Info */}
           <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
             <div className="text-center">
-              <p className="text-sm text-blue-800 dark:text-blue-200 mb-2">
+              <p className="text-sm text-blue-900 dark:text-blue-200 mb-2">
                 <strong>Demo Credentials:</strong>
               </p>
-              <p className="text-xs text-blue-700 dark:text-blue-300">
+              <p className="text-xs text-blue-800 dark:text-blue-300">
                 Username: admin | Password: pastibisa
               </p>
             </div>

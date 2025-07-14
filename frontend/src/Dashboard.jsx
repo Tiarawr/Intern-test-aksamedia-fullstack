@@ -201,7 +201,6 @@ const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
   if (imagePath.startsWith('http')) return imagePath; // Already full URL
   const fullUrl = `http://127.0.0.1:8000/storage/${imagePath}`;
-  console.log('🖼️ Image URL:', { imagePath, fullUrl });
   return fullUrl;
 };
 
@@ -259,7 +258,6 @@ export default function Dashboard() {
       // Load divisions first (doesn't require auth for basic info)
       try {
         const divisionsRes = await divisionsAPI.getAll();
-        console.log('Divisions response:', divisionsRes);
         setDivisions(divisionsRes.data?.divisions || []);
       } catch (error) {
         console.error('Error loading divisions:', error);
@@ -273,8 +271,6 @@ export default function Dashboard() {
           name: searchQuery,
           division_id: selectedDivision
         });
-        console.log('Employees response:', employeesRes);
-        console.log('First employee image:', employeesRes.data?.employees?.[0]?.image);
         setEmployees(employeesRes.data?.employees || []);
       } catch (error) {
         console.error('Error loading employees:', error);
@@ -379,10 +375,8 @@ export default function Dashboard() {
 
   // CRUD Functions
   const handleAddEmployee = () => {
-    console.log('🎯 Add Employee clicked!');
     setEditingEmployee(null);
     setIsModalOpen(true);
-    console.log('📝 Modal state set to:', true);
   };
 
   const handleEditEmployee = (employee) => {
@@ -628,7 +622,6 @@ export default function Dashboard() {
                       alt={employee.name}
                       className="w-12 h-12 rounded-full object-cover"
                       onError={(e) => {
-                        console.warn('Image failed to load:', e.target.src);
                         // Fallback to avatar if image fails to load
                         e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
                           employee.name

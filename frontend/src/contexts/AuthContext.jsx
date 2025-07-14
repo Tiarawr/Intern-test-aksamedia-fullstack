@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
     try {
       await authAPI.logout();
     } catch (error) {
-      console.log("Logout API call failed:", error);
+      // Silently handle logout API failure
     } finally {
       // Clear saved display name on logout
       localStorage.removeItem("userDisplayName");
