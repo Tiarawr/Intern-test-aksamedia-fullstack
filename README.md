@@ -5,6 +5,13 @@ Repositori ini dibuat untuk keperluan tes internship fullstack di Aksamedia.
 ## Catatan
 Jika menemukan bug, silakan buat **issue** atau **pull request** langsung di repository ini. Karena project ini dikerjakan dalam waktu sehari, harap maklum jika masih ada kekurangan.
 
+## Fitur
+- **Manajemen Karyawan**: Tambah, edit, dan hapus data karyawan.
+- **Pagination**: Jika data karyawan sudah lebih dari 8, maka otomatis akan muncul fitur pagination.
+- **Login Admin**:  
+  Username: **admin**  
+  Password: **pastibisa**
+
 ## Struktur Project
 - `backend/` : Source code backend (Laravel)
 - `frontend/` : Source code frontend (React + Vite)
