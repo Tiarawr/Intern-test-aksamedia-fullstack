@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Plus, Search, Edit, Trash2, Briefcase } from "lucide-react";
+import { Plus, Search, Edit, Briefcase } from "lucide-react";
 import { divisionsAPI } from "../../services/api";
 import { useTheme } from "../contexts/ThemeContext";
 import DivisionFormModal from "./DivisionFormModal";
@@ -127,20 +127,6 @@ export default function DivisionManagement() {
     setShowModal(true);
   };
 
-  const handleDeleteDivision = async (divisionId) => {
-    if (window.confirm("Apakah Anda yakin ingin menghapus divisi ini?")) {
-      try {
-        const response = await divisionsAPI.delete(divisionId);
-        if (response.status === "success") {
-          showNotification("success", "Berhasil", "Divisi berhasil dihapus");
-          fetchDivisions(); // Refresh list
-        }
-      } catch (error) {
-        showNotification("error", "Error", "Gagal menghapus divisi: " + error.message);
-      }
-    }
-  };
-
   const handleModalSuccess = (action) => {
     const message =
       action === "created"
@@ -261,18 +247,9 @@ export default function DivisionManagement() {
                           ? "hover:bg-gray-700 text-gray-400 hover:text-blue-400"
                           : "hover:bg-gray-100 text-gray-500 hover:text-blue-600"
                       }`}
+                      title="Edit Divisi"
                     >
                       <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteDivision(division.id)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        isDark
-                          ? "hover:bg-gray-700 text-gray-400 hover:text-red-400"
-                          : "hover:bg-gray-100 text-gray-500 hover:text-red-600"
-                      }`}
-                    >
-                      <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>

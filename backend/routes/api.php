@@ -13,7 +13,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('divisions', [DivisionController::class, 'index']); // Tugas 2
     Route::post('divisions', [DivisionController::class, 'store']); // Create division
     Route::put('divisions/{id}', [DivisionController::class, 'update']); // Update division
-    Route::delete('divisions/{id}', [DivisionController::class, 'destroy']); // Delete division
+    // Delete division removed - only add and edit allowed
     
     Route::get('employees', [EmployeeController::class, 'index']); // Tugas 3
     Route::post('employees', [EmployeeController::class, 'store']); // Tugas 4
