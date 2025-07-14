@@ -229,7 +229,7 @@ export default function Dashboard() {
   const [pagination, setPagination] = useState({
     current_page: 1,
     last_page: 1,
-    per_page: 3,
+    per_page: 8,
     total: 0,
   });
 
@@ -277,14 +277,14 @@ export default function Dashboard() {
           page: currentPage,
           name: searchQuery,
           division_id: selectedDivision,
-          per_page: 3, // Use smaller page size to show pagination
+          per_page: 8, // Use 8 karyawan per halaman
         });
         setEmployees(employeesRes.data?.employees || []);
         setPagination(
           employeesRes.pagination || {
             current_page: 1,
             last_page: 1,
-            per_page: 3,
+            per_page: 8,
             total: 0,
           }
         );
@@ -515,7 +515,7 @@ export default function Dashboard() {
                   </div>
                   <div className="ml-4">
                     <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {(employees || []).length}
+                      {pagination.total || 0}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       Total Karyawan
