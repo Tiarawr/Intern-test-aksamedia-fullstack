@@ -24,6 +24,7 @@ return [
         'https://*.vercel.app',
         'https://*.railway.app',
         'https://intern-test-aksamedia-fullstack-production.up.railway.app',
+        '*', // Allow all origins for debugging
     ], // Allow specific origins for development and production
 
     'allowed_origins_patterns' => [],
