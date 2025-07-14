@@ -1,5 +1,5 @@
 // services/api.js
-const API_BASE_URL = "http://localhost:8000/api"; // Sesuaikan dengan URL backend
+const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 class ApiService {
   constructor() {
@@ -21,17 +21,50 @@ class ApiService {
   // Helper untuk membuat request
   async makeRequest(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
+    
+    // Check if body is FormData
+    const isFormData = options.body instanceof FormData;
+    
     const config = {
       headers: {
-        "Content-Type": "application/json",
+        // Only set Content-Type for non-FormData requests
+        ...(!isFormData && { "Content-Type": "application/json" }),
+        "Accept": "application/json",
         ...(this.token && { Authorization: `Bearer ${this.token}` }),
         ...options.headers,
       },
       ...options,
     };
 
+    // Debug logging
+    console.log('🔍 API Request:', {
+      url,
+      method: options.method || 'GET',
+      hasToken: !!this.token,
+      isFormData,
+      token: this.token ? `${this.token.substring(0, 10)}...` : 'none',
+      headers: config.headers
+    });
+
     try {
       const response = await fetch(url, config);
+      
+      // Log response status
+      console.log('📡 API Response:', {
+        url,
+        status: response.status,
+        ok: response.ok,
+        contentType: response.headers.get('content-type')
+      });
+
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('❌ Non-JSON Response:', text.substring(0, 200));
+        throw new Error(`Server returned non-JSON response: ${response.status}`);
+      }
+
       const data = await response.json();
 
       if (!response.ok) {
@@ -40,12 +73,17 @@ class ApiService {
 
       return data;
     } catch (error) {
+      console.error('❌ API Error:', {
+        url,
+        error: error.message
+      });
       throw error;
     }
   }
 
   // 1. Login API
   async login(username, password) {
+    // Don't initialize CSRF for login - it's token-based auth
     return this.makeRequest("/login", {
       method: "POST",
       body: JSON.stringify({ username, password }),
@@ -58,6 +96,29 @@ class ApiService {
     if (name) params.append("name", name);
 
     return this.makeRequest(`/divisions?${params}`);
+  }
+
+  // Create Division
+  async createDivision(divisionData) {
+    return this.makeRequest("/divisions", {
+      method: "POST",
+      body: JSON.stringify(divisionData),
+    });
+  }
+
+  // Update Division
+  async updateDivision(id, divisionData) {
+    return this.makeRequest(`/divisions/${id}`, {
+      method: "PUT",
+      body: JSON.stringify(divisionData),
+    });
+  }
+
+  // Delete Division
+  async deleteDivision(id) {
+    return this.makeRequest(`/divisions/${id}`, {
+      method: "DELETE",
+    });
   }
 
   // 3. Get All Employees
@@ -82,6 +143,7 @@ class ApiService {
     return this.makeRequest("/employees", {
       method: "POST",
       headers: {
+        "Accept": "application/json",
         ...(this.token && { Authorization: `Bearer ${this.token}` }),
         // Don't set Content-Type for FormData, browser will set it automatically
       },
@@ -102,6 +164,7 @@ class ApiService {
     return this.makeRequest(`/employees/${id}`, {
       method: "POST", // Using POST with _method for file uploads
       headers: {
+        "Accept": "application/json",
         ...(this.token && { Authorization: `Bearer ${this.token}` }),
       },
       body: formData,
@@ -117,91 +180,84 @@ class ApiService {
 
   // 7. Logout
   async logout() {
-    return this.makeRequest("/logout", {
-      method: "POST",
+    try {
+      await this.makeRequest("/logout", {
+        method: "POST",
+      });
+    } catch (error) {
+      console.log("Logout request failed, but clearing local storage anyway");
+    } finally {
+      // Always clear local storage regardless of API response
+      this.token = null;
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+    }
+  }
+
+  // User Profile APIs
+  async getProfile() {
+    return this.makeRequest("/profile");
+  }
+
+  async updateProfile(profileData) {
+    return this.makeRequest("/profile", {
+      method: "PUT",
+      body: JSON.stringify(profileData),
     });
   }
 }
 
 // Export singleton instance
-export default new ApiService();
+const apiService = new ApiService();
+export default apiService;
 
-// Context untuk state management
-import React, { createContext, useContext, useReducer } from "react";
-
-const AppContext = createContext();
-
-const initialState = {
-  user: null,
-  token: localStorage.getItem("token"),
-  employees: [],
-  divisions: [],
-  loading: false,
-  error: null,
+// Helper functions for authentication
+export const isAuthenticated = () => {
+  return !!localStorage.getItem("token");
 };
 
-function appReducer(state, action) {
-  switch (action.type) {
-    case "SET_LOADING":
-      return { ...state, loading: action.payload };
-    case "SET_ERROR":
-      return { ...state, error: action.payload, loading: false };
-    case "LOGIN_SUCCESS":
-      return {
-        ...state,
-        user: action.payload.admin,
-        token: action.payload.token,
-        loading: false,
-        error: null,
-      };
-    case "LOGOUT":
-      return {
-        ...state,
-        user: null,
-        token: null,
-        employees: [],
-        divisions: [],
-      };
-    case "SET_EMPLOYEES":
-      return { ...state, employees: action.payload, loading: false };
-    case "SET_DIVISIONS":
-      return { ...state, divisions: action.payload, loading: false };
-    case "ADD_EMPLOYEE":
-      return {
-        ...state,
-        employees: [...state.employees, action.payload],
-      };
-    case "UPDATE_EMPLOYEE":
-      return {
-        ...state,
-        employees: state.employees.map((emp) =>
-          emp.id === action.payload.id ? action.payload : emp
-        ),
-      };
-    case "DELETE_EMPLOYEE":
-      return {
-        ...state,
-        employees: state.employees.filter((emp) => emp.id !== action.payload),
-      };
-    default:
-      return state;
-  }
-}
+export const getCurrentUser = () => {
+  const user = localStorage.getItem("user");
+  return user ? JSON.parse(user) : null;
+};
 
-export function AppProvider({ children }) {
-  const [state, dispatch] = useReducer(appReducer, initialState);
+// Auth API
+export const authAPI = {
+  login: async (username, password) => {
+    try {
+      const response = await apiService.login(username, password);
+      if (response && response.status === 'success') {
+        apiService.setToken(response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.admin));
+        return response;
+      } else {
+        throw new Error(response.message || 'Login failed');
+      }
+    } catch (error) {
+      throw error;
+    }
+  },
+  logout: () => apiService.logout(),
+};
 
-  return (
-    <AppContext.Provider value={{ state, dispatch }}>
-      {children}
-    </AppContext.Provider>
-  );
-}
+// Employees API
+export const employeesAPI = {
+  getAll: (filters = {}) => apiService.getEmployees(filters),
+  create: (data) => apiService.createEmployee(data),
+  update: (id, data) => apiService.updateEmployee(id, data),
+  delete: (id) => apiService.deleteEmployee(id),
+};
 
-export function useApp() {
-  const context = useContext(AppContext);
-  if (!context) {
-    throw new Error("useApp must be used within AppProvider");
-  }
-  return context;
-}
+// Divisions API
+export const divisionsAPI = {
+  getAll: (name = "") => apiService.getDivisions(name),
+  create: (data) => apiService.createDivision(data),
+  update: (id, data) => apiService.updateDivision(id, data),
+  delete: (id) => apiService.deleteDivision(id),
+};
+
+// User API
+export const userAPI = {
+  getProfile: () => apiService.getProfile(),
+  updateProfile: (data) => apiService.updateProfile(data),
+};

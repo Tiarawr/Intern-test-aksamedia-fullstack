@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { X, Upload, User, Phone, Briefcase } from "lucide-react";
-// import ApiService from "./services/api";
+import { X, Upload, User, Phone, Briefcase, Camera } from "lucide-react";
+import { employeesAPI } from "../../services/api";
+import { useTheme } from "../contexts/ThemeContext";
+
+// Helper function to get full image URL
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  if (imagePath.startsWith('http')) return imagePath; // Already full URL
+  if (imagePath.startsWith('data:')) return imagePath; // Base64 data URL
+  return `http://127.0.0.1:8000/storage/${imagePath}`;
+};
 
 export default function EmployeeFormModal({
   isOpen,
@@ -9,6 +18,15 @@ export default function EmployeeFormModal({
   divisions = [],
   onSuccess,
 }) {
+  // Debug logging
+  useEffect(() => {
+    console.log('🏢 EmployeeFormModal props:', {
+      isOpen,
+      employee,
+      divisions: divisions?.length || 0,
+    });
+  }, [isOpen, employee, divisions]);
+
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
@@ -19,16 +37,7 @@ export default function EmployeeFormModal({
   const [imagePreview, setImagePreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const [isDarkMode, setIsDarkMode] = useState(false);
-
-  // Check theme
-  useEffect(() => {
-    const checkTheme = () => {
-      const hasDarkClass = document.documentElement.classList.contains("dark");
-      setIsDarkMode(hasDarkClass);
-    };
-    checkTheme();
-  }, []);
+  const { isDark } = useTheme();
 
   // Set form data if editing
   useEffect(() => {
@@ -40,7 +49,7 @@ export default function EmployeeFormModal({
         position: employee.position || "",
         image: null,
       });
-      setImagePreview(employee.image || null);
+      setImagePreview(getImageUrl(employee.image) || null);
     } else {
       setFormData({
         name: "",
@@ -135,10 +144,10 @@ export default function EmployeeFormModal({
       let response;
       if (employee) {
         // Update employee
-        response = await ApiService.updateEmployee(employee.id, submitData);
+        response = await employeesAPI.update(employee.id, submitData);
       } else {
         // Create employee
-        response = await ApiService.createEmployee(submitData);
+        response = await employeesAPI.create(submitData);
       }
 
       if (response.status === "success") {
@@ -160,40 +169,56 @@ export default function EmployeeFormModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto">
-      <div className="flex min-h-screen items-center justify-center px-4 pt-4 pb-20 text-center sm:block sm:p-0">
-        {/* Background overlay */}
-        <div
-          className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-          onClick={onClose}
-        ></div>
+    <div className="absolute inset-0 z-60 flex items-center justify-center p-4">
+      {/* Background overlay with blur effect */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity duration-300"
+        onClick={onClose}
+      />
 
+      {/* Modal container */}
+      <div
+        className={`relative w-full max-w-md transform transition-all duration-300 scale-100 ${
+          isDark ? "text-white" : "text-gray-900"
+        }`}
+      >
         {/* Modal panel */}
         <div
-          className={`inline-block w-full max-w-lg transform overflow-hidden rounded-lg text-left align-bottom shadow-xl transition-all sm:my-8 sm:align-middle ${
-            isDarkMode ? "bg-gray-800" : "bg-white"
-          }`}
+          className={`relative rounded-2xl shadow-2xl border ${
+            isDark
+              ? "bg-gray-800 border-gray-700"
+              : "bg-white border-gray-200"
+          } overflow-hidden`}
         >
-          {/* Header */}
+          {/* Header with gradient */}
           <div
-            className={`px-6 py-4 border-b ${
-              isDarkMode ? "border-gray-700" : "border-gray-200"
+            className={`relative px-6 py-5 ${
+              isDark
+                ? "bg-gradient-to-r from-gray-800 to-gray-700"
+                : "bg-gradient-to-r from-blue-50 to-indigo-50"
             }`}
           >
             <div className="flex items-center justify-between">
-              <h3
-                className={`text-lg font-semibold ${
-                  isDarkMode ? "text-white" : "text-gray-900"
-                }`}
-              >
-                {employee ? "Edit Karyawan" : "Tambah Karyawan"}
-              </h3>
+              <div>
+                <h3
+                  className="text-xl font-bold text-gray-900 dark:text-white"
+                >
+                  {employee ? "Edit Karyawan" : "Tambah Karyawan"}
+                </h3>
+                <p
+                  className="text-sm mt-1 text-gray-600 dark:text-gray-300"
+                >
+                  {employee
+                    ? "Perbarui informasi karyawan"
+                    : "Tambahkan karyawan baru"}
+                </p>
+              </div>
               <button
                 onClick={onClose}
-                className={`p-1 rounded-lg hover:bg-gray-100 ${
-                  isDarkMode
-                    ? "hover:bg-gray-700 text-gray-400"
-                    : "text-gray-500"
+                className={`p-2 rounded-full transition-colors ${
+                  isDark
+                    ? "hover:bg-gray-600 text-gray-300 hover:text-white"
+                    : "hover:bg-gray-100 text-gray-500 hover:text-gray-700"
                 }`}
               >
                 <X className="w-5 h-5" />
@@ -201,216 +226,229 @@ export default function EmployeeFormModal({
             </div>
           </div>
 
-          {/* Form */}
-          <div className="px-6 py-4">
+          {/* Form content */}
+          <div className="px-6 py-6 max-h-[70vh] overflow-y-auto">
             {errors.submit && (
-              <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-lg">
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">
                 {errors.submit}
               </div>
             )}
 
-            {/* Image Upload */}
-            <div className="mb-6">
-              <label
-                className={`block text-sm font-medium mb-2 ${
-                  isDarkMode ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
-                Foto Karyawan
-              </label>
-              <div className="flex items-center space-x-4">
-                <div className="flex-shrink-0">
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Image Upload */}
+              <div className="flex flex-col items-center mb-6">
+                <div className="relative group">
                   {imagePreview ? (
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="w-16 h-16 rounded-full object-cover"
-                    />
+                    <div className="relative">
+                      <img
+                        src={imagePreview}
+                        alt="Preview"
+                        className="w-24 h-24 rounded-full object-cover border-4 border-white shadow-lg"
+                      />
+                      <div className="absolute inset-0 bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <Camera className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
                   ) : (
                     <div
-                      className={`w-16 h-16 rounded-full flex items-center justify-center ${
-                        isDarkMode ? "bg-gray-700" : "bg-gray-200"
+                      className={`w-24 h-24 rounded-full flex items-center justify-center border-2 border-dashed transition-colors group-hover:border-blue-400 ${
+                        isDark
+                          ? "bg-gray-700 border-gray-600"
+                          : "bg-gray-100 border-gray-300"
                       }`}
                     >
-                      <User
+                      <Camera
                         className={`w-8 h-8 ${
-                          isDarkMode ? "text-gray-400" : "text-gray-500"
-                        }`}
+                          isDark ? "text-gray-400" : "text-gray-500"
+                        } group-hover:text-blue-500 transition-colors`}
                       />
                     </div>
                   )}
-                </div>
-                <div className="flex-1">
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handleImageChange}
-                    className="hidden"
-                    id="image-upload"
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                  <label
-                    htmlFor="image-upload"
-                    className={`inline-flex items-center px-3 py-2 border rounded-lg cursor-pointer ${
-                      isDarkMode
-                        ? "border-gray-600 text-gray-300 hover:bg-gray-700"
-                        : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                    }`}
-                  >
-                    <Upload className="w-4 h-4 mr-2" />
-                    Pilih Foto
-                  </label>
                 </div>
-              </div>
-            </div>
-
-            {/* Name */}
-            <div className="mb-4">
-              <label
-                className={`block text-sm font-medium mb-2 ${
-                  isDarkMode ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
-                Nama Lengkap *
-              </label>
-              <div className="relative">
-                <User
-                  className={`absolute left-3 top-3 w-5 h-5 ${
-                    isDarkMode ? "text-gray-400" : "text-gray-500"
+                <p
+                  className={`text-sm mt-2 ${
+                    isDark ? "text-gray-400" : "text-gray-600"
                   }`}
-                />
+                >
+                  Klik untuk upload foto
+                </p>
+              </div>
+
+              {/* Name Input */}
+              <div className="space-y-2">
+                <label
+                  className={`block text-sm font-semibold ${
+                    isDark ? "text-gray-200" : "text-gray-700"
+                  }`}
+                >
+                  Nama Lengkap *
+                </label>
+                <div className="relative">
+                  <User
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
+                      isDark ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  />
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 transition-all ${
+                      errors.name
+                        ? "border-red-400 focus:border-red-500"
+                        : isDark
+                        ? "border-gray-600 bg-gray-700 text-white focus:border-blue-500"
+                        : "border-gray-200 bg-white text-gray-900 focus:border-blue-500"
+                    } focus:ring-4 focus:ring-blue-500/20 focus:outline-none`}
+                    placeholder="Masukkan nama lengkap"
+                  />
+                </div>
+                {errors.name && (
+                  <p className="text-sm text-red-500 flex items-center gap-1">
+                    <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                    {errors.name}
+                  </p>
+                )}
+              </div>
+
+              {/* Phone Input */}
+              <div className="space-y-2">
+                <label
+                  className={`block text-sm font-semibold ${
+                    isDark ? "text-gray-200" : "text-gray-700"
+                  }`}
+                >
+                  Nomor Telepon *
+                </label>
+                <div className="relative">
+                  <Phone
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
+                      isDark ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  />
+                  <input
+                    type="tel"
+                    name="phone"
+                    value={formData.phone}
+                    onChange={handleInputChange}
+                    className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 transition-all ${
+                      errors.phone
+                        ? "border-red-400 focus:border-red-500"
+                        : isDark
+                        ? "border-gray-600 bg-gray-700 text-white focus:border-blue-500"
+                        : "border-gray-200 bg-white text-gray-900 focus:border-blue-500"
+                    } focus:ring-4 focus:ring-blue-500/20 focus:outline-none`}
+                    placeholder="+62 812 3456 7890"
+                  />
+                </div>
+                {errors.phone && (
+                  <p className="text-sm text-red-500 flex items-center gap-1">
+                    <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                    {errors.phone}
+                  </p>
+                )}
+              </div>
+
+              {/* Division Select */}
+              <div className="space-y-2">
+                <label
+                  className={`block text-sm font-semibold ${
+                    isDark ? "text-gray-200" : "text-gray-700"
+                  }`}
+                >
+                  Divisi *
+                </label>
+                <div className="relative">
+                  <Briefcase
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
+                      isDark ? "text-gray-400" : "text-gray-500"
+                    }`}
+                  />
+                  <select
+                    name="division"
+                    value={formData.division}
+                    onChange={handleInputChange}
+                    className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 transition-all appearance-none ${
+                      errors.division
+                        ? "border-red-400 focus:border-red-500"
+                        : isDark
+                        ? "border-gray-600 bg-gray-700 text-white focus:border-blue-500"
+                        : "border-gray-200 bg-white text-gray-900 focus:border-blue-500"
+                    } focus:ring-4 focus:ring-blue-500/20 focus:outline-none`}
+                  >
+                    <option value="">Pilih Divisi</option>
+                    {divisions.map((division) => (
+                      <option key={division.id} value={division.id}>
+                        {division.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                {errors.division && (
+                  <p className="text-sm text-red-500 flex items-center gap-1">
+                    <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                    {errors.division}
+                  </p>
+                )}
+              </div>
+
+              {/* Position Input */}
+              <div className="space-y-2">
+                <label
+                  className={`block text-sm font-semibold ${
+                    isDark ? "text-gray-200" : "text-gray-700"
+                  }`}
+                >
+                  Posisi/Jabatan *
+                </label>
                 <input
                   type="text"
-                  name="name"
-                  value={formData.name}
+                  name="position"
+                  value={formData.position}
                   onChange={handleInputChange}
-                  className={`w-full pl-10 pr-4 py-3 border rounded-lg ${
-                    errors.name
-                      ? "border-red-500"
-                      : isDarkMode
-                      ? "border-gray-600 bg-gray-700 text-white"
-                      : "border-gray-300 bg-white text-gray-900"
-                  } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                  placeholder="Masukkan nama lengkap"
+                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all ${
+                    errors.position
+                      ? "border-red-400 focus:border-red-500"
+                      : isDark
+                      ? "border-gray-600 bg-gray-700 text-white focus:border-blue-500"
+                      : "border-gray-200 bg-white text-gray-900 focus:border-blue-500"
+                  } focus:ring-4 focus:ring-blue-500/20 focus:outline-none`}
+                  placeholder="Software Engineer, Manager, dll"
                 />
+                {errors.position && (
+                  <p className="text-sm text-red-500 flex items-center gap-1">
+                    <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                    {errors.position}
+                  </p>
+                )}
               </div>
-              {errors.name && (
-                <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-              )}
-            </div>
+            </form>
+          </div>
 
-            {/* Phone */}
-            <div className="mb-4">
-              <label
-                className={`block text-sm font-medium mb-2 ${
-                  isDarkMode ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
-                Nomor Telepon *
-              </label>
-              <div className="relative">
-                <Phone
-                  className={`absolute left-3 top-3 w-5 h-5 ${
-                    isDarkMode ? "text-gray-400" : "text-gray-500"
-                  }`}
-                />
-                <input
-                  type="tel"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  className={`w-full pl-10 pr-4 py-3 border rounded-lg ${
-                    errors.phone
-                      ? "border-red-500"
-                      : isDarkMode
-                      ? "border-gray-600 bg-gray-700 text-white"
-                      : "border-gray-300 bg-white text-gray-900"
-                  } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                  placeholder="Contoh: +62 812 3456 7890"
-                />
-              </div>
-              {errors.phone && (
-                <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
-              )}
-            </div>
-
-            {/* Division */}
-            <div className="mb-4">
-              <label
-                className={`block text-sm font-medium mb-2 ${
-                  isDarkMode ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
-                Divisi *
-              </label>
-              <div className="relative">
-                <Briefcase
-                  className={`absolute left-3 top-3 w-5 h-5 ${
-                    isDarkMode ? "text-gray-400" : "text-gray-500"
-                  }`}
-                />
-                <select
-                  name="division"
-                  value={formData.division}
-                  onChange={handleInputChange}
-                  className={`w-full pl-10 pr-4 py-3 border rounded-lg ${
-                    errors.division
-                      ? "border-red-500"
-                      : isDarkMode
-                      ? "border-gray-600 bg-gray-700 text-white"
-                      : "border-gray-300 bg-white text-gray-900"
-                  } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                >
-                  <option value="">Pilih Divisi</option>
-                  {divisions.map((division) => (
-                    <option key={division.id} value={division.id}>
-                      {division.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              {errors.division && (
-                <p className="mt-1 text-sm text-red-600">{errors.division}</p>
-              )}
-            </div>
-
-            {/* Position */}
-            <div className="mb-6">
-              <label
-                className={`block text-sm font-medium mb-2 ${
-                  isDarkMode ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
-                Posisi/Jabatan *
-              </label>
-              <input
-                type="text"
-                name="position"
-                value={formData.position}
-                onChange={handleInputChange}
-                className={`w-full px-4 py-3 border rounded-lg ${
-                  errors.position
-                    ? "border-red-500"
-                    : isDarkMode
-                    ? "border-gray-600 bg-gray-700 text-white"
-                    : "border-gray-300 bg-white text-gray-900"
-                } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
-                placeholder="Contoh: Software Engineer"
-              />
-              {errors.position && (
-                <p className="mt-1 text-sm text-red-600">{errors.position}</p>
-              )}
-            </div>
-
-            {/* Buttons */}
-            <div className="flex space-x-3">
+          {/* Footer with action buttons */}
+          <div
+            className={`px-6 py-4 border-t ${
+              isDark
+                ? "bg-gray-800/50 border-gray-700"
+                : "bg-gray-50/50 border-gray-200"
+            }`}
+          >
+            <div className="flex gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className={`flex-1 px-4 py-2 border rounded-lg font-medium ${
-                  isDarkMode
-                    ? "border-gray-600 text-gray-300 hover:bg-gray-700"
-                    : "border-gray-300 text-gray-700 hover:bg-gray-50"
-                }`}
+                className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${
+                  isDark
+                    ? "bg-gray-700 text-gray-300 hover:bg-gray-600 border border-gray-600"
+                    : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
+                } focus:ring-4 focus:ring-gray-500/20 focus:outline-none`}
               >
                 Batal
               </button>
@@ -418,9 +456,22 @@ export default function EmployeeFormModal({
                 type="button"
                 onClick={handleSubmit}
                 disabled={isLoading}
-                className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium rounded-lg transition-colors"
+                className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${
+                  isLoading
+                    ? "bg-blue-400 cursor-not-allowed"
+                    : "bg-blue-600 hover:bg-blue-700 active:bg-blue-800"
+                } text-white focus:ring-4 focus:ring-blue-500/30 focus:outline-none shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none disabled:shadow-lg`}
               >
-                {isLoading ? "Menyimpan..." : employee ? "Update" : "Simpan"}
+                {isLoading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                    Menyimpan...
+                  </div>
+                ) : (
+                  <span>
+                    {employee ? "Update Karyawan" : "Simpan Karyawan"}
+                  </span>
+                )}
               </button>
             </div>
           </div>

@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useSearchParams } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
 import {
   Search,
   Users,
@@ -10,75 +12,18 @@ import {
   ChevronLeft,
   ChevronRight,
   Filter,
+  MoreHorizontal,
 } from "lucide-react";
 import Header from "./components/Header";
+import DeleteConfirmationModal from "./components/DeleteConfirmationModal ";
 import EmployeeFormModal from "./components/EmployeeFormModal";
-// import ApiService from "./services/api"; // Commented out until backend is ready
-
-// Mock data - replace with real API calls later
-const mockDivisions = [
-  { id: 1, name: "Human Resources" },
-  { id: 2, name: "Engineering" },
-  { id: 3, name: "Marketing" },
-  { id: 4, name: "Sales" },
-  { id: 5, name: "Finance" },
-];
-
-const mockEmployees = [
-  {
-    id: 1,
-    name: "John Doe",
-    position: "Software Engineer",
-    phone: "+62812345678",
-    division: { id: 2, name: "Engineering" },
-    image: null,
-  },
-  {
-    id: 2,
-    name: "Jane Smith",
-    position: "HR Manager",
-    phone: "+62823456789",
-    division: { id: 1, name: "Human Resources" },
-    image: null,
-  },
-  {
-    id: 3,
-    name: "Bob Johnson",
-    position: "Marketing Specialist",
-    phone: "+62834567890",
-    division: { id: 3, name: "Marketing" },
-    image: null,
-  },
-  {
-    id: 4,
-    name: "Alice Brown",
-    position: "Sales Representative",
-    phone: "+62845678901",
-    division: { id: 4, name: "Sales" },
-    image: null,
-  },
-  {
-    id: 5,
-    name: "Charlie Wilson",
-    position: "Financial Analyst",
-    phone: "+62856789012",
-    division: { id: 5, name: "Finance" },
-    image: null,
-  },
-  {
-    id: 6,
-    name: "Diana Davis",
-    position: "Senior Developer",
-    phone: "+62867890123",
-    division: { id: 2, name: "Engineering" },
-    image: null,
-  },
-];
+import DivisionManagement from "./components/DivisionManagement";
+import { employeesAPI, divisionsAPI } from "../services/api";
 
 function Notification({ show, type, title, message, onClose }) {
   return (
     <div
-      className={`fixed top-4 right-4 z-50 min-w-80 px-4 py-3 rounded-lg shadow-lg border flex items-center space-x-3 transition-all duration-300 ${
+      className={`fixed top-[4rem] right-4 z-50 min-w-80 px-4 py-3 rounded-lg shadow-lg border flex items-center space-x-3 transition-all duration-300 ${
         show ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
       } ${
         type === "error"
@@ -141,20 +86,148 @@ function Notification({ show, type, title, message, onClose }) {
   );
 }
 
+// Enhanced Pagination Component
+function Pagination({
+  currentPage,
+  totalPages,
+  onPageChange,
+  totalItems,
+  itemsPerPage,
+}) {
+  const getPageNumbers = () => {
+    const delta = 2;
+    const range = [];
+    const rangeWithDots = [];
+
+    for (
+      let i = Math.max(2, currentPage - delta);
+      i <= Math.min(totalPages - 1, currentPage + delta);
+      i++
+    ) {
+      range.push(i);
+    }
+
+    if (currentPage - delta > 2) {
+      rangeWithDots.push(1, "...");
+    } else {
+      rangeWithDots.push(1);
+    }
+
+    rangeWithDots.push(...range);
+
+    if (currentPage + delta < totalPages - 1) {
+      rangeWithDots.push("...", totalPages);
+    } else {
+      rangeWithDots.push(totalPages);
+    }
+
+    return rangeWithDots;
+  };
+
+  if (totalPages <= 1) return null;
+
+  const startItem = (currentPage - 1) * itemsPerPage + 1;
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems);
+
+  return (
+    <div className="flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+      {/* Pagination Info */}
+      <div className="text-sm text-gray-600 dark:text-gray-400">
+        Menampilkan <span className="font-semibold">{startItem}</span> hingga{" "}
+        <span className="font-semibold">{endItem}</span> dari{" "}
+        <span className="font-semibold">{totalItems}</span> karyawan
+      </div>
+
+      {/* Pagination Controls */}
+      <div className="flex items-center space-x-1">
+        {/* Previous Button */}
+        <button
+          onClick={() => onPageChange(currentPage - 1)}
+          disabled={currentPage === 1}
+          className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+            currentPage === 1
+              ? "opacity-50 cursor-not-allowed"
+              : "text-gray-600 hover:text-white hover:bg-gray-700 border border-gray-300" // Consistent colors
+          }`}
+        >
+          <ChevronLeft className="w-4 h-4 mr-1" />
+          Previous
+        </button>
+
+        {/* Page Numbers */}
+        <div className="flex items-center space-x-1 mx-2">
+          {getPageNumbers().map((page, index) => (
+            <React.Fragment key={index}>
+              {page === "..." ? (
+                <span className="px-3 py-2 text-gray-400 dark:text-gray-500">
+                  <MoreHorizontal className="w-4 h-4" />
+                </span>
+              ) : (
+                <button
+                  onClick={() => onPageChange(page)}
+                  className={`px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 ${
+                    currentPage === page
+                      ? "bg-blue-600 text-white shadow-md ring-1 ring-blue-600"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600"
+                  }`}
+                >
+                  {page}
+                </button>
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+
+        {/* Next Button */}
+        <button
+          onClick={() => onPageChange(currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className={`flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-all duration-200 border ${
+            currentPage === totalPages
+              ? "opacity-50 cursor-not-allowed"
+              : "text-gray-600 hover:text-gray-900 hover:bg-gray-100 border-gray-300 dark:text-gray-400 dark:hover:text-white dark:hover:bg-gray-700 dark:border-gray-600"
+          }`}
+        >
+          Next
+          <ChevronRight className="w-4 h-4 ml-1" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// Helper function to get full image URL
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return null;
+  if (imagePath.startsWith('http')) return imagePath; // Already full URL
+  const fullUrl = `http://127.0.0.1:8000/storage/${imagePath}`;
+  console.log('🖼️ Image URL:', { imagePath, fullUrl });
+  return fullUrl;
+};
+
+// Dashboard component - Updated to fix data loading and authentication
 export default function Dashboard() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedDivision, setSelectedDivision] = useState("");
-  const [isDarkMode, setIsDarkMode] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const { isAuthenticated } = useAuth();
+  
+  // Get initial state from URL parameters
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || "");
+  const [selectedDivision, setSelectedDivision] = useState(searchParams.get('division') || "");
+  const [currentPage, setCurrentPage] = useState(parseInt(searchParams.get('page')) || 1);
 
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [employeeToDelete, setEmployeeToDelete] = useState(null);
 
-  // Mock state for data (replace with API data later)
-  const [employees, setEmployees] = useState(mockEmployees);
-  const [divisions, setDivisions] = useState(mockDivisions);
-  const [isLoading, setIsLoading] = useState(false);
+  // API state
+  const [employees, setEmployees] = useState([]);
+  const [divisions, setDivisions] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Tab state
+  const [activeTab, setActiveTab] = useState("employees");
 
   // Notification state
   const [notif, setNotif] = useState({
@@ -165,69 +238,71 @@ export default function Dashboard() {
   });
   const notifTimeout = useRef();
 
-  // Check initial theme and listen for changes
-  useEffect(() => {
-    const checkTheme = () => {
-      const hasDarkClass = document.documentElement.classList.contains("dark");
-      setIsDarkMode(hasDarkClass);
-    };
-
-    checkTheme();
-
-    const observer = new MutationObserver((mutations) => {
-      mutations.forEach((mutation) => {
-        if (
-          mutation.type === "attributes" &&
-          mutation.attributeName === "class"
-        ) {
-          checkTheme();
-        }
-      });
+  // Update URL parameters when state changes
+  const updateURLParams = (params) => {
+    const newParams = new URLSearchParams(searchParams);
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) {
+        newParams.set(key, value);
+      } else {
+        newParams.delete(key);
+      }
     });
-
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  // Mock data loading (replace with real API calls)
-  useEffect(() => {
-    // Simulate loading delay
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
-  }, []);
-
-  // Filter employees based on search and division
-  const filteredEmployees = employees.filter((employee) => {
-    const matchesSearch = employee.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesDivision = selectedDivision
-      ? employee.division.id.toString() === selectedDivision
-      : true;
-    return matchesSearch && matchesDivision;
-  });
-
-  // Pagination logic
-  const itemsPerPage = 6;
-  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedEmployees = filteredEmployees.slice(
-    startIndex,
-    startIndex + itemsPerPage
-  );
-
-  const pagination = {
-    current_page: currentPage,
-    last_page: totalPages,
-    per_page: itemsPerPage,
-    total: filteredEmployees.length,
+    setSearchParams(newParams);
   };
+
+  // Load data from API
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Load divisions first (doesn't require auth for basic info)
+      try {
+        const divisionsRes = await divisionsAPI.getAll();
+        console.log('Divisions response:', divisionsRes);
+        setDivisions(divisionsRes.data?.divisions || []);
+      } catch (error) {
+        console.error('Error loading divisions:', error);
+        setDivisions([]); // Fallback to empty array
+      }
+      
+      // Load employees
+      try {
+        const employeesRes = await employeesAPI.getAll({
+          page: currentPage,
+          name: searchQuery,
+          division_id: selectedDivision
+        });
+        console.log('Employees response:', employeesRes);
+        console.log('First employee image:', employeesRes.data?.employees?.[0]?.image);
+        setEmployees(employeesRes.data?.employees || []);
+      } catch (error) {
+        console.error('Error loading employees:', error);
+        setEmployees([]); // Fallback to empty array
+        showNotification('error', 'Error', 'Failed to load employees data');
+      }
+      
+    } catch (error) {
+      console.error('Error loading data:', error);
+      showNotification('error', 'Error', 'Failed to load data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load data on component mount and when parameters change
+  useEffect(() => {
+    loadData(); // Enable real API calls
+  }, [currentPage, searchQuery, selectedDivision]);
+
+  // Update URL when state changes
+  useEffect(() => {
+    updateURLParams({
+      search: searchQuery,
+      division: selectedDivision,
+      page: currentPage > 1 ? currentPage : null
+    });
+  }, [searchQuery, selectedDivision, currentPage]);
 
   // Show notification
   const showNotification = (type, title, message) => {
@@ -239,10 +314,75 @@ export default function Dashboard() {
     );
   };
 
-  // CRUD Functions (mock implementations)
+  // Delete functions
+  const confirmDelete = async () => {
+    if (employeeToDelete) {
+      try {
+        await employeesAPI.delete(employeeToDelete.id);
+        setIsDeleteModalOpen(false);
+        showNotification(
+          "success",
+          "Berhasil",
+          `${employeeToDelete.name} berhasil dihapus`
+        );
+        setEmployeeToDelete(null);
+        loadData(); // Reload data
+      } catch (error) {
+        showNotification('error', 'Error', 'Failed to delete employee');
+        console.error('Delete error:', error);
+      }
+    }
+  };
+
+  const cancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setEmployeeToDelete(null);
+  };
+
+  const handleSaveEmployee = async (employeeData) => {
+    try {
+      if (editingEmployee) {
+        await employeesAPI.update(editingEmployee.id, employeeData);
+        showNotification("success", "Berhasil", "Data karyawan berhasil diupdate");
+      } else {
+        await employeesAPI.create(employeeData);
+        showNotification("success", "Berhasil", "Karyawan baru berhasil ditambahkan");
+      }
+      setIsModalOpen(false);
+      setEditingEmployee(null);
+      loadData(); // Reload data
+    } catch (error) {
+      showNotification('error', 'Error', 'Failed to save employee');
+      console.error('Save error:', error);
+    }
+  };
+
+  // Filter employees based on search and division
+  const filteredEmployees = (employees || []).filter((employee) => {
+    const matchesSearch = employee.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+    const matchesDivision = selectedDivision
+      ? employee.division.id.toString() === selectedDivision
+      : true;
+    return matchesSearch && matchesDivision;
+  });
+
+  // Pagination logic (fixed to use filtered data)
+  const itemsPerPage = 6;
+  const totalPages = Math.ceil(filteredEmployees.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedEmployees = filteredEmployees.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+
+  // CRUD Functions
   const handleAddEmployee = () => {
+    console.log('🎯 Add Employee clicked!');
     setEditingEmployee(null);
     setIsModalOpen(true);
+    console.log('📝 Modal state set to:', true);
   };
 
   const handleEditEmployee = (employee) => {
@@ -250,51 +390,20 @@ export default function Dashboard() {
     setIsModalOpen(true);
   };
 
-  const handleDeleteEmployee = async (employee) => {
-    if (window.confirm(`Apakah Anda yakin ingin menghapus ${employee.name}?`)) {
-      // Mock delete - remove from local state
-      setEmployees((prev) => prev.filter((emp) => emp.id !== employee.id));
-      showNotification(
-        "success",
-        "Berhasil",
-        `${employee.name} berhasil dihapus`
-      );
-    }
+  const handleDeleteEmployee = (employee) => {
+    setEmployeeToDelete(employee);
+    setIsDeleteModalOpen(true);
   };
 
-  const handleFormSuccess = (action, employeeData) => {
+  const handleFormSuccess = async (action, employeeData) => {
     if (action === "created") {
-      // Mock create - add to local state
-      const newEmployee = {
-        ...employeeData,
-        id: Math.max(...employees.map((e) => e.id)) + 1,
-        division: divisions.find(
-          (d) => d.id === parseInt(employeeData.division_id)
-        ),
-      };
-      setEmployees((prev) => [...prev, newEmployee]);
       showNotification("success", "Berhasil", "Karyawan berhasil ditambahkan");
     } else {
-      // Mock update - update in local state
-      setEmployees((prev) =>
-        prev.map((emp) =>
-          emp.id === editingEmployee.id
-            ? {
-                ...emp,
-                ...employeeData,
-                division: divisions.find(
-                  (d) => d.id === parseInt(employeeData.division_id)
-                ),
-              }
-            : emp
-        )
-      );
-      showNotification(
-        "success",
-        "Berhasil",
-        "Data karyawan berhasil diupdate"
-      );
+      showNotification("success", "Berhasil", "Data karyawan berhasil diupdate");
     }
+    
+    // Reload data from server instead of manually updating local state
+    await loadData();
     setIsModalOpen(false);
   };
 
@@ -305,20 +414,21 @@ export default function Dashboard() {
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const handleLogout = () => {
-    // Mock logout
-    showNotification("success", "Logout", "Anda berhasil logout");
-    // In real app, this would redirect to login
-    console.log("Logout clicked");
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+      showNotification("error", "Error", "Logout failed");
+    }
   };
 
   return (
-    <div
-      className={`min-h-screen ${isDarkMode ? "bg-gray-900" : "bg-gray-50"}`}
-    >
-      <Header showUserMenu={true} onLogout={handleLogout} />
+    <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors duration-200">
+      <Header />
 
       {/* Notification */}
       <Notification
@@ -338,40 +448,75 @@ export default function Dashboard() {
         onSuccess={handleFormSuccess}
       />
 
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={cancelDelete}
+        onConfirm={confirmDelete}
+        employeeName={employeeToDelete?.name}
+      />
+
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header Section */}
+        {/* Header Section with Tabs */}
         <div className="mb-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
             <div>
-              <h1
-                className={`text-3xl font-bold ${
-                  isDarkMode ? "text-white" : "text-gray-900"
-                } mb-2`}
-              >
-                Employee Directory
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                Management Dashboard
               </h1>
-              <p
-                className={`text-lg ${
-                  isDarkMode ? "text-gray-400" : "text-gray-600"
-                }`}
-              >
-                Kelola informasi karyawan dengan mudah
+              <p className="text-lg text-gray-600 dark:text-gray-400">
+                Kelola karyawan dan divisi perusahaan
               </p>
             </div>
+          </div>
 
+          {/* Tab Navigation */}
+          <div className="border-b border-gray-200 dark:border-gray-700">
+            <nav className="-mb-px flex space-x-8">
+              <button
+                onClick={() => setActiveTab("employees")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === "employees"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Karyawan
+                </div>
+              </button>
+              <button
+                onClick={() => setActiveTab("divisions")}
+                className={`py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  activeTab === "divisions"
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <Briefcase className="w-5 h-5" />
+                  Divisi
+                </div>
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        {activeTab === "employees" && (
+          <>
             {/* Add Employee Button */}
-            <div className="mt-4 sm:mt-0">
+            <div className="mb-6 flex justify-end">
               <button
                 onClick={handleAddEmployee}
-                className="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors duration-200 shadow-lg"
+                className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
               >
                 <Plus className="w-5 h-5 mr-2" />
                 Tambah Karyawan
               </button>
             </div>
-          </div>
-        </div>
 
         {/* Search and Filter Bar */}
         <div className="mb-8 flex flex-col sm:flex-row gap-4">
@@ -379,9 +524,7 @@ export default function Dashboard() {
           <div className="relative flex-1">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <Search
-                className={`w-5 h-5 ${
-                  isDarkMode ? "text-gray-400" : "text-gray-500"
-                }`}
+                className="w-5 h-5 text-gray-500 dark:text-gray-400"
               />
             </div>
             <input
@@ -389,34 +532,22 @@ export default function Dashboard() {
               placeholder="Cari nama karyawan..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className={`w-full pl-10 pr-4 py-3 border rounded-lg ${
-                isDarkMode
-                  ? "bg-gray-800 border-gray-700 text-white placeholder-gray-400"
-                  : "bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-              } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+              className="w-full pl-10 pr-4 py-3 border rounded-xl transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none"
             />
           </div>
 
           {/* Division Filter */}
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Filter
-                className={`w-5 h-5 ${
-                  isDarkMode ? "text-gray-400" : "text-gray-500"
-                }`}
-              />
+              <Filter className="w-5 h-5 text-gray-500 dark:text-gray-400" />
             </div>
             <select
               value={selectedDivision}
               onChange={(e) => setSelectedDivision(e.target.value)}
-              className={`pl-10 pr-8 py-3 border rounded-lg ${
-                isDarkMode
-                  ? "bg-gray-800 border-gray-700 text-white"
-                  : "bg-white border-gray-300 text-gray-900"
-              } focus:ring-2 focus:ring-blue-500 focus:border-transparent`}
+              className="pl-10 pr-8 py-3 border rounded-xl transition-all duration-200 min-w-[200px] bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none"
             >
               <option value="">Semua Divisi</option>
-              {divisions.map((division) => (
+              {(divisions || []).map((division) => (
                 <option key={division.id} value={division.id}>
                   {division.name}
                 </option>
@@ -426,30 +557,20 @@ export default function Dashboard() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <div
-            className={`p-6 rounded-lg border ${
-              isDarkMode
-                ? "bg-gray-800 border-gray-700"
-                : "bg-white border-gray-200"
-            }`}
-          >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
                 <Users className="w-6 h-6 text-blue-600" />
               </div>
               <div className="ml-4">
                 <p
-                  className={`text-2xl font-bold ${
-                    isDarkMode ? "text-white" : "text-gray-900"
-                  }`}
+                  className="text-2xl font-bold text-gray-900 dark:text-white"
                 >
-                  {employees.length}
+                  {(employees || []).length}
                 </p>
                 <p
-                  className={`text-sm ${
-                    isDarkMode ? "text-gray-400" : "text-gray-600"
-                  }`}
+                  className="text-sm text-gray-600 dark:text-gray-400"
                 >
                   Total Karyawan
                 </p>
@@ -457,61 +578,17 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div
-            className={`p-6 rounded-lg border ${
-              isDarkMode
-                ? "bg-gray-800 border-gray-700"
-                : "bg-white border-gray-200"
-            }`}
-          >
+          <div className="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
                 <Briefcase className="w-6 h-6 text-green-600" />
               </div>
               <div className="ml-4">
-                <p
-                  className={`text-2xl font-bold ${
-                    isDarkMode ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  {divisions.length}
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                  {(divisions || []).length}
                 </p>
-                <p
-                  className={`text-sm ${
-                    isDarkMode ? "text-gray-400" : "text-gray-600"
-                  }`}
-                >
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   Total Divisi
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div
-            className={`p-6 rounded-lg border ${
-              isDarkMode
-                ? "bg-gray-800 border-gray-700"
-                : "bg-white border-gray-200"
-            }`}
-          >
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <Search className="w-6 h-6 text-purple-600" />
-              </div>
-              <div className="ml-4">
-                <p
-                  className={`text-2xl font-bold ${
-                    isDarkMode ? "text-white" : "text-gray-900"
-                  }`}
-                >
-                  {filteredEmployees.length}
-                </p>
-                <p
-                  className={`text-sm ${
-                    isDarkMode ? "text-gray-400" : "text-gray-600"
-                  }`}
-                >
-                  Hasil Pencarian
                 </p>
               </div>
             </div>
@@ -523,9 +600,7 @@ export default function Dashboard() {
           <div className="text-center py-12">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             <p
-              className={`mt-2 ${
-                isDarkMode ? "text-gray-400" : "text-gray-600"
-              }`}
+              className="mt-2 text-gray-600 dark:text-gray-400"
             >
               Memuat data...
             </p>
@@ -534,198 +609,121 @@ export default function Dashboard() {
 
         {/* Employee Cards Grid */}
         {!isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {paginatedEmployees.map((employee) => (
-              <div
-                key={employee.id}
-                className={`p-6 rounded-lg border hover:shadow-lg transition-all duration-200 ${
-                  isDarkMode
-                    ? "bg-gray-800 border-gray-700"
-                    : "bg-white border-gray-200"
-                }`}
-              >
-                {/* Header with Avatar */}
-                <div className="flex items-center mb-4">
-                  <img
-                    src={
-                      employee.image ||
-                      `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                        employee.name
-                      )}&background=6366f1&color=fff`
-                    }
-                    alt={employee.name}
-                    className="w-12 h-12 rounded-full object-cover"
-                  />
-                  <div className="ml-3 flex-1">
-                    <h3
-                      className={`text-lg font-semibold ${
-                        isDarkMode ? "text-white" : "text-gray-900"
-                      }`}
-                    >
-                      {employee.name}
-                    </h3>
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex space-x-2 ml-2">
-                    <button
-                      onClick={() => handleEditEmployee(employee)}
-                      className={`p-2 rounded-lg transition-colors duration-200 ${
-                        isDarkMode
-                          ? "text-gray-400 hover:text-blue-400 hover:bg-gray-700"
-                          : "text-gray-500 hover:text-blue-600 hover:bg-blue-50"
-                      }`}
-                      title="Edit Karyawan"
-                    >
-                      <Edit className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => handleDeleteEmployee(employee)}
-                      className={`p-2 rounded-lg transition-colors duration-200 ${
-                        isDarkMode
-                          ? "text-gray-400 hover:text-red-400 hover:bg-gray-700"
-                          : "text-gray-500 hover:text-red-600 hover:bg-red-50"
-                      }`}
-                      title="Hapus Karyawan"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Employee Details */}
-                <div className="space-y-3">
-                  {/* Division and Position */}
-                  <div>
-                    <div className="flex items-center space-x-2 mb-1">
-                      <Briefcase
-                        className={`w-4 h-4 ${
-                          isDarkMode ? "text-gray-400" : "text-gray-500"
-                        }`}
-                      />
-                      <p
-                        className={`font-medium ${
-                          isDarkMode ? "text-white" : "text-gray-900"
-                        }`}
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {paginatedEmployees.map((employee) => (
+                <div
+                  key={employee.id}
+                  className="p-6 rounded-xl border transition-all duration-200 hover:shadow-lg hover:scale-[1.02] bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700"
+                >
+                  {/* Header with Avatar */}
+                  <div className="flex items-center mb-4">
+                    <img
+                      src={
+                        getImageUrl(employee.image) ||
+                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          employee.name
+                        )}&background=6366f1&color=fff&size=48`
+                      }
+                      alt={employee.name}
+                      className="w-12 h-12 rounded-full object-cover"
+                      onError={(e) => {
+                        console.warn('Image failed to load:', e.target.src);
+                        // Fallback to avatar if image fails to load
+                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                          employee.name
+                        )}&background=6366f1&color=fff&size=48`;
+                      }}
+                    />
+                    <div className="ml-3 flex-1">
+                      <h3
+                        className="text-lg font-semibold text-gray-900 dark:text-white"
                       >
-                        {employee.division?.name || "No Division"}
+                        {employee.name}
+                      </h3>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex space-x-2 ml-2">
+                      <button
+                        onClick={() => handleEditEmployee(employee)}
+                        className="p-2 rounded-lg transition-all duration-200 text-gray-500 hover:text-blue-600 hover:bg-blue-50 dark:text-gray-400 dark:hover:text-blue-400 dark:hover:bg-gray-700"
+                        title="Edit Karyawan"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteEmployee(employee)}
+                        className="p-2 rounded-lg transition-all duration-200 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:text-red-400 dark:hover:bg-gray-700"
+                        title="Hapus Karyawan"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Employee Details */}
+                  <div className="space-y-3">
+                    {/* Division and Position */}
+                    <div>
+                      <div className="flex items-center space-x-2 mb-1">
+                        <Briefcase
+                          className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                        />
+                        <p
+                          className="font-medium text-gray-900 dark:text-white"
+                        >
+                          {employee.division?.name || "No Division"}
+                        </p>
+                      </div>
+                      <p
+                        className="text-sm ml-6 text-gray-600 dark:text-gray-400"
+                      >
+                        {employee.position}
                       </p>
                     </div>
-                    <p
-                      className={`text-sm ml-6 ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      {employee.position}
-                    </p>
-                  </div>
 
-                  {/* Contact Info */}
-                  <div className="flex items-center space-x-2">
-                    <Phone
-                      className={`w-4 h-4 ${
-                        isDarkMode ? "text-gray-400" : "text-gray-500"
-                      }`}
-                    />
-                    <p
-                      className={`text-sm ${
-                        isDarkMode ? "text-gray-400" : "text-gray-600"
-                      }`}
-                    >
-                      {employee.phone}
-                    </p>
+                    {/* Contact Info */}
+                    <div className="flex items-center space-x-2">
+                      <Phone
+                        className="w-4 h-4 text-gray-500 dark:text-gray-400"
+                      />
+                      <p
+                        className="text-sm text-gray-600 dark:text-gray-400"
+                      >
+                        {employee.phone}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Pagination */}
-        {!isLoading && pagination.last_page > 1 && (
-          <div className="flex items-center justify-between">
-            <div
-              className={`text-sm ${
-                isDarkMode ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
-              Menampilkan{" "}
-              {(pagination.current_page - 1) * pagination.per_page + 1} -{" "}
-              {Math.min(
-                pagination.current_page * pagination.per_page,
-                pagination.total
-              )}{" "}
-              dari {pagination.total} karyawan
+              ))}
             </div>
 
-            <div className="flex items-center space-x-2">
-              <button
-                onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
-                className={`p-2 rounded-lg ${
-                  currentPage === 1
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                } ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-
-              <div className="flex space-x-1">
-                {Array.from(
-                  { length: Math.min(pagination.last_page, 5) },
-                  (_, i) => {
-                    const page = i + 1;
-                    return (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${
-                          currentPage === page
-                            ? "bg-blue-600 text-white"
-                            : isDarkMode
-                            ? "text-gray-400 hover:text-white hover:bg-gray-700"
-                            : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    );
-                  }
-                )}
-              </div>
-
-              <button
-                onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage === pagination.last_page}
-                className={`p-2 rounded-lg ${
-                  currentPage === pagination.last_page
-                    ? "opacity-50 cursor-not-allowed"
-                    : "hover:bg-gray-100 dark:hover:bg-gray-700"
-                } ${isDarkMode ? "text-gray-400" : "text-gray-600"}`}
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-          </div>
+            {/* Enhanced Pagination */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+              totalItems={filteredEmployees.length}
+              itemsPerPage={itemsPerPage}
+            />
+          </>
         )}
 
         {/* No Results Message */}
         {!isLoading && paginatedEmployees.length === 0 && (
           <div className="text-center py-12">
             <Search
-              className={`w-12 h-12 mx-auto mb-4 ${
-                isDarkMode ? "text-gray-400" : "text-gray-500"
-              }`}
+              className="w-16 h-16 mx-auto mb-4 text-gray-500 dark:text-gray-400"
             />
             <h3
-              className={`text-xl font-semibold mb-2 ${
-                isDarkMode ? "text-white" : "text-gray-900"
-              }`}
+              className="text-xl font-semibold mb-2 text-gray-900 dark:text-white"
             >
               Tidak ada hasil ditemukan
             </h3>
-            <p className={`${isDarkMode ? "text-gray-400" : "text-gray-600"}`}>
+            <p
+              className="mb-6 text-gray-600 dark:text-gray-400"
+            >
               Coba ubah kata kunci pencarian atau filter Anda
             </p>
             <button
@@ -733,13 +731,22 @@ export default function Dashboard() {
                 setSearchQuery("");
                 setSelectedDivision("");
               }}
-              className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors duration-200"
             >
               Reset Filter
             </button>
           </div>
         )}
+          </>
+        )}
+
+        {/* Divisions Tab Content */}
+        {activeTab === "divisions" && (
+          <DivisionManagement />
+        )}
       </main>
+
+      {/* Test Components */}
     </div>
   );
 }

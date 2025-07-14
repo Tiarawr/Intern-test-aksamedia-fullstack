@@ -1,6 +1,207 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
+/* FORCE white background for light mode with proper text contrast */
+html:not(.dark) {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) body {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+}
+
+/* FORCE light mode styles with proper contrast */
+html:not(.dark) .bg-gray-50 {
+  background-color: #f9fafb !important;
+}
+
+html:not(.dark) .bg-gray-900 {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .bg-white {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .bg-gray-100 {
+  background-color: #f3f4f6 !important;
+}
+
+html:not(.dark) .bg-gray-800 {
+  background-color: #ffffff !important;
+}
+
+/* Fix text colors for light mode readability */
+html:not(.dark) .text-white {
+  color: #111827 !important;
+}
+
+html:not(.dark) .text-gray-300 {
+  color: #4b5563 !important;
+}
+
+html:not(.dark) .text-gray-400 {
+  color: #6b7280 !important;
+}
+
+html:not(.dark) .text-gray-500 {
+  color: #6b7280 !important;
+}
+
+html:not(.dark) .text-gray-600 {
+  color: #4b5563 !important;
+}
+
+html:not(.dark) .text-gray-700 {
+  color: #374151 !important;
+}
+
+html:not(.dark) .text-gray-900 {
+  color: #111827 !important;
+}
+
+/* Ensure borders are visible in light mode */
+html:not(.dark) .border-gray-200 {
+  border-color: #e5e7eb !important;
+}
+
+html:not(.dark) .border-gray-300 {
+  border-color: #d1d5db !important;
+}
+
+html:not(.dark) .border-gray-700 {
+  border-color: #d1d5db !important;
+}
+
+/* Fix hover states for light mode */
+html:not(.dark) .hover\:bg-gray-100:hover {
+  background-color: #f3f4f6 !important;
+}
+
+html:not(.dark) .hover\:bg-gray-700:hover {
+  background-color: #f3f4f6 !important;
+}
+
+html:not(.dark) .hover\:text-gray-900:hover {
+  color: #111827 !important;
+}
+
+html:not(.dark) .hover\:text-white:hover {
+  color: #111827 !important;
+}
+
+/* Fix button colors specifically */
+html:not(.dark) .bg-blue-600 {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+html:not(.dark) .hover\:bg-blue-700:hover {
+  background-color: #1d4ed8 !important;
+  color: #ffffff !important;
+}
+
+/* FORCE dark mode styles only when .dark class exists */
+html.dark {
+  background-color: #111827 !important;
+}
+
+html.dark body {
+  background-color: #111827 !important;
+  color: #f9fafb !important;
+}
+
+html.dark .bg-gray-50 {
+  background-color: #111827 !important;
+}
+
+html.dark .bg-white {
+  background-color: #1f2937 !important;
+}
+
+html.dark .bg-gray-100 {
+  background-color: #374151 !important;
+}
+
+html.dark .bg-gray-800 {
+  background-color: #1f2937 !important;
+}
+
+html.dark .bg-gray-900 {
+  background-color: #111827 !important;
+}
+
+html.dark .text-gray-900 {
+  color: #f9fafb !important;
+}
+
+html.dark .text-gray-700 {
+  color: #e5e7eb !important;
+}
+
+html.dark .text-gray-600 {
+  color: #d1d5db !important;
+}
+
+html.dark .text-gray-500 {
+  color: #9ca3af !important;
+}
+
+html.dark .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+html.dark .text-gray-300 {
+  color: #d1d5db !important;
+}
+
+html.dark .text-black {
+  color: #f9fafb !important;
+}
+
+html.dark .text-white {
+  color: #f9fafb !important;
+}
+
+html.dark .border-gray-200 {
+  border-color: #374151 !important;
+}
+
+html.dark .border-gray-300 {
+  border-color: #4b5563 !important;
+}
+
+html.dark .border-gray-700 {
+  border-color: #374151 !important;
+}
+
+html.dark .hover\:bg-gray-100:hover {
+  background-color: #374151 !important;
+}
+
+html.dark .hover\:bg-gray-700:hover {
+  background-color: #4b5563 !important;
+}
+
+html.dark .hover\:text-gray-900:hover {
+  color: #f9fafb !important;
+}
+
+html.dark .hover\:text-white:hover {
+  color: #f9fafb !important;
+}
+
+html.dark .bg-blue-600 {
+  background-color: #2563eb !important;
+  color: #ffffff !important;
+}
+
+html.dark .hover\:bg-blue-700:hover {
+  background-color: #1d4ed8 !important;
+  color: #ffffff !important;
+}
+
 .font-poppins {
   font-family: "Poppins", sans-serif;
 }
@@ -51,6 +252,16 @@
   }
 }
 
+/* Modal animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
 /* Utility classes */
 .animate-fade-in {
   animation: fadeIn 0.5s ease-in-out;
@@ -60,13 +271,14 @@
   animation: slideUp 0.3s ease-out;
 }
 
-/* Focus styles */
 .focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  border-radius: 0.375rem;
 }
 
 .dark .focus-ring {
-  @apply focus:ring-offset-gray-800;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5), 0 0 0 4px rgba(31, 41, 55, 1);
 }
 
 /* Loading spinner */
@@ -77,6 +289,20 @@
   width: 20px;
   height: 20px;
   animation: spin 2s linear infinite;
+}
+.notification {
+  z-index: 10; /* Lower the z-index so the header stays above */
+}
+
+/* Header should have a higher z-index to stay clickable */
+header {
+  position: relative;
+  z-index: 50; /* Higher value to keep it on top */
+}
+
+.modal-container,
+.notification-container {
+  z-index: 1000; /* Higher value for modals if needed */
 }
 
 @keyframes spin {
