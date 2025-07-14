@@ -81,6 +81,57 @@ class ApiService {
     }
   }
 
+  // Helper untuk public request (no auth required)
+  async makePublicRequest(endpoint, options = {}) {
+    const url = `${API_BASE_URL}${endpoint}`;
+    
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        ...options.headers,
+      },
+      ...options,
+    };
+
+    console.log('🌐 Public API Request:', {
+      url,
+      method: options.method || 'GET',
+      requiresAuth: false
+    });
+
+    try {
+      const response = await fetch(url, config);
+      
+      console.log('📡 Public API Response:', {
+        url,
+        status: response.status,
+        ok: response.ok
+      });
+
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text();
+        console.error('❌ Non-JSON Response:', text.substring(0, 200));
+        throw new Error(`Server returned non-JSON response: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Something went wrong");
+      }
+
+      return data;
+    } catch (error) {
+      console.error('❌ Public API Error:', {
+        url,
+        error: error.message
+      });
+      throw error;
+    }
+  }
+
   // 1. Login API
   async login(username, password) {
     // Don't initialize CSRF for login - it's token-based auth

@@ -10,6 +10,10 @@ use Illuminate\Support\Facades\Route;
 // Public routes
 Route::post('login', [AuthController::class, 'login']);
 
+// Public read-only endpoints (no auth required)
+Route::get('divisions', [DivisionController::class, 'index']); // Public read
+Route::get('employees', [EmployeeController::class, 'index']); // Public read
+
 // Test authentication endpoint
 Route::middleware('auth:sanctum')->get('auth-test', function (Request $request) {
     return response()->json([
@@ -20,13 +24,13 @@ Route::middleware('auth:sanctum')->get('auth-test', function (Request $request) 
     ]);
 });
 
+// Protected routes (authentication required)
 Route::middleware('auth:sanctum')->group(function () {
-    Route::get('divisions', [DivisionController::class, 'index']); // Tugas 2
+    // Division management (add/edit only, no delete)
     Route::post('divisions', [DivisionController::class, 'store']); // Create division
     Route::put('divisions/{id}', [DivisionController::class, 'update']); // Update division
-    // Delete division removed - only add and edit allowed
     
-    Route::get('employees', [EmployeeController::class, 'index']); // Tugas 3
+    // Employee management (full CRUD)
     Route::post('employees', [EmployeeController::class, 'store']); // Tugas 4
     Route::put('employees/{id}', [EmployeeController::class, 'update']); // Tugas 5
     Route::delete('employees/{id}', [EmployeeController::class, 'destroy']); // Tugas 6
