@@ -25,13 +25,15 @@ export const AuthProvider = ({ children }) => {
     if (isAuthenticated()) {
       const userData = getCurrentUser();
 
-      // Load saved display name from localStorage if exists
-      const savedDisplayName = localStorage.getItem("userDisplayName");
-      if (savedDisplayName) {
-        userData.displayName = savedDisplayName;
-      }
+      if (userData) {
+        // Load saved display name from localStorage if exists
+        const savedDisplayName = localStorage.getItem("userDisplayName");
+        if (savedDisplayName) {
+          userData.displayName = savedDisplayName;
+        }
 
-      setUser(userData);
+        setUser(userData);
+      }
     }
     setLoading(false);
   }, []);
@@ -40,13 +42,16 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await authAPI.login(username, password);
 
+      // Backend returns user, not admin
+      const userData = response.data.user;
+      
       // Load saved display name for this user if exists
       const savedDisplayName = localStorage.getItem("userDisplayName");
-      if (savedDisplayName) {
-        response.data.admin.displayName = savedDisplayName;
+      if (savedDisplayName && userData) {
+        userData.displayName = savedDisplayName;
       }
 
-      setUser(response.data.admin);
+      setUser(userData);
       return { success: true };
     } catch (error) {
       throw new Error(error.message || "Network error occurred");

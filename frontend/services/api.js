@@ -218,7 +218,16 @@ export const isAuthenticated = () => {
 
 export const getCurrentUser = () => {
   const user = localStorage.getItem("user");
-  return user ? JSON.parse(user) : null;
+  if (!user || user === "undefined" || user === "null") {
+    return null;
+  }
+  try {
+    return JSON.parse(user);
+  } catch (error) {
+    // If JSON parsing fails, clear the corrupted data and return null
+    localStorage.removeItem("user");
+    return null;
+  }
 };
 
 // Auth API
@@ -228,7 +237,11 @@ export const authAPI = {
       const response = await apiService.login(username, password);
       if (response && response.status === 'success') {
         apiService.setToken(response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.admin));
+        // Backend returns 'user', not 'admin'
+        const userData = response.data.user;
+        if (userData) {
+          localStorage.setItem("user", JSON.stringify(userData));
+        }
         return response;
       } else {
         throw new Error(response.message || 'Login failed');
