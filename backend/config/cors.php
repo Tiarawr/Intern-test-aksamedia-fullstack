@@ -21,7 +21,10 @@ return [
         'http://127.0.0.1:5173',
         'http://localhost:3000',
         'http://127.0.0.1:3000',
-    ], // Allow specific origins for development
+        'https://*.vercel.app',
+        'https://*.railway.app',
+        'https://intern-test-aksamedia-fullstack-production.up.railway.app',
+    ], // Allow specific origins for development and production
 
     'allowed_origins_patterns' => [],
 
