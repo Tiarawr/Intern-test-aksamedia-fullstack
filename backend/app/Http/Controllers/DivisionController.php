@@ -98,7 +98,7 @@ class DivisionController extends Controller
     {
         try {
             $division = Division::findOrFail($id);
-            
+
             // Check if division has employees
             if ($division->employees()->count() > 0) {
                 return response()->json([

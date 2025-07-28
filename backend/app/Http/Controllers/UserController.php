@@ -17,7 +17,7 @@ class UserController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        
+
         return response()->json([
             'status' => 'success',
             'data' => [
@@ -38,7 +38,7 @@ class UserController extends Controller
     {
         /** @var User $user */
         $user = Auth::user();
-        
+
         $request->validate([
             'name' => 'required|string|max:255',
             'username' => [
@@ -79,11 +79,11 @@ class UserController extends Controller
         $user->name = $request->name;
         $user->username = $request->username;
         $user->email = $request->email;
-        
+
         if ($request->filled('new_password')) {
             $user->password = Hash::make($request->new_password);
         }
-        
+
         $user->save();
 
         return response()->json([

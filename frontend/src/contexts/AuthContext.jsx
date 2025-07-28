@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
 
       // Backend returns user, not admin
       const userData = response.data.user;
-      
+
       // Load saved display name for this user if exists
       const savedDisplayName = localStorage.getItem("userDisplayName");
       if (savedDisplayName && userData) {

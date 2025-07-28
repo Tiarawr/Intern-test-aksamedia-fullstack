@@ -5,10 +5,10 @@ import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 
 const EditProfile = ({ isOpen, onClose }) => {
   const { user, updateDisplayName } = useAuth();
-  
+
   // Lock body scroll when modal is open
   useBodyScrollLock(isOpen);
-  
+
   const [formData, setFormData] = useState({
     name: "",
   });

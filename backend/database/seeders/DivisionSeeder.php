@@ -11,7 +11,7 @@ class DivisionSeeder extends Seeder
     {
         $divisions = [
             'Mobile Apps',
-            'QA', 
+            'QA',
             'Full Stack',
             'Backend',
             'Frontend',

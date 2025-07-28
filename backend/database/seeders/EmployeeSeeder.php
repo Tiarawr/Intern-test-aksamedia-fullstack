@@ -12,7 +12,7 @@ class EmployeeSeeder extends Seeder
     {
         // Get existing divisions
         $divisions = Division::all();
-        
+
         if ($divisions->count() > 0) {
             Employee::create([
                 'name' => 'John Doe',

@@ -21,15 +21,15 @@ class ApiService {
   // Helper untuk membuat request
   async makeRequest(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
-    
+
     // Check if body is FormData
     const isFormData = options.body instanceof FormData;
-    
+
     const config = {
       headers: {
         // Only set Content-Type for non-FormData requests
         ...(!isFormData && { "Content-Type": "application/json" }),
-        "Accept": "application/json",
+        Accept: "application/json",
         ...(this.token && { Authorization: `Bearer ${this.token}` }),
         ...options.headers,
       },
@@ -37,32 +37,34 @@ class ApiService {
     };
 
     // Debug logging
-    console.log('🔍 API Request:', {
+    console.log("🔍 API Request:", {
       url,
-      method: options.method || 'GET',
+      method: options.method || "GET",
       hasToken: !!this.token,
       isFormData,
-      token: this.token ? `${this.token.substring(0, 10)}...` : 'none',
-      headers: config.headers
+      token: this.token ? `${this.token.substring(0, 10)}...` : "none",
+      headers: config.headers,
     });
 
     try {
       const response = await fetch(url, config);
-      
+
       // Log response status
-      console.log('📡 API Response:', {
+      console.log("📡 API Response:", {
         url,
         status: response.status,
         ok: response.ok,
-        contentType: response.headers.get('content-type')
+        contentType: response.headers.get("content-type"),
       });
 
       // Check if response is JSON
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
         const text = await response.text();
-        console.error('❌ Non-JSON Response:', text.substring(0, 200));
-        throw new Error(`Server returned non-JSON response: ${response.status}`);
+        console.error("❌ Non-JSON Response:", text.substring(0, 200));
+        throw new Error(
+          `Server returned non-JSON response: ${response.status}`
+        );
       }
 
       const data = await response.json();
@@ -73,9 +75,9 @@ class ApiService {
 
       return data;
     } catch (error) {
-      console.error('❌ API Error:', {
+      console.error("❌ API Error:", {
         url,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -84,36 +86,38 @@ class ApiService {
   // Helper untuk public request (no auth required)
   async makePublicRequest(endpoint, options = {}) {
     const url = `${API_BASE_URL}${endpoint}`;
-    
+
     const config = {
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        Accept: "application/json",
         ...options.headers,
       },
       ...options,
     };
 
-    console.log('🌐 Public API Request:', {
+    console.log("🌐 Public API Request:", {
       url,
-      method: options.method || 'GET',
-      requiresAuth: false
+      method: options.method || "GET",
+      requiresAuth: false,
     });
 
     try {
       const response = await fetch(url, config);
-      
-      console.log('📡 Public API Response:', {
+
+      console.log("📡 Public API Response:", {
         url,
         status: response.status,
-        ok: response.ok
+        ok: response.ok,
       });
 
-      const contentType = response.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
         const text = await response.text();
-        console.error('❌ Non-JSON Response:', text.substring(0, 200));
-        throw new Error(`Server returned non-JSON response: ${response.status}`);
+        console.error("❌ Non-JSON Response:", text.substring(0, 200));
+        throw new Error(
+          `Server returned non-JSON response: ${response.status}`
+        );
       }
 
       const data = await response.json();
@@ -124,9 +128,9 @@ class ApiService {
 
       return data;
     } catch (error) {
-      console.error('❌ Public API Error:', {
+      console.error("❌ Public API Error:", {
         url,
-        error: error.message
+        error: error.message,
       });
       throw error;
     }
@@ -195,7 +199,7 @@ class ApiService {
     return this.makeRequest("/employees", {
       method: "POST",
       headers: {
-        "Accept": "application/json",
+        Accept: "application/json",
         ...(this.token && { Authorization: `Bearer ${this.token}` }),
         // Don't set Content-Type for FormData, browser will set it automatically
       },
@@ -216,7 +220,7 @@ class ApiService {
     return this.makeRequest(`/employees/${id}`, {
       method: "POST", // Using POST with _method for file uploads
       headers: {
-        "Accept": "application/json",
+        Accept: "application/json",
         ...(this.token && { Authorization: `Bearer ${this.token}` }),
       },
       body: formData,
@@ -287,7 +291,7 @@ export const authAPI = {
   login: async (username, password) => {
     try {
       const response = await apiService.login(username, password);
-      if (response && response.status === 'success') {
+      if (response && response.status === "success") {
         apiService.setToken(response.data.token);
         // Backend returns 'user', not 'admin'
         const userData = response.data.user;
@@ -296,7 +300,7 @@ export const authAPI = {
         }
         return response;
       } else {
-        throw new Error(response.message || 'Login failed');
+        throw new Error(response.message || "Login failed");
       }
     } catch (error) {
       throw error;
@@ -332,11 +336,11 @@ export const testAPI = {
   // Test authentication with Railway
   testAuth: async () => {
     try {
-      const response = await apiService.makeRequest('/auth-test');
-      console.log('✅ Auth Test Success:', response);
+      const response = await apiService.makeRequest("/auth-test");
+      console.log("✅ Auth Test Success:", response);
       return response;
     } catch (error) {
-      console.error('❌ Auth Test Failed:', error);
+      console.error("❌ Auth Test Failed:", error);
       throw error;
     }
   },

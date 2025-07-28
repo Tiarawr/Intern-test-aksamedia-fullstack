@@ -351,7 +351,7 @@ export default function Dashboard() {
     } else {
       showNotification(
         "success",
-        "Berhasil", 
+        "Berhasil",
         "Data karyawan berhasil diupdate"
       );
     }
@@ -359,7 +359,7 @@ export default function Dashboard() {
     // Reload data from server to get latest data
     setIsModalOpen(false);
     setEditingEmployee(null);
-    
+
     // Delay untuk memastikan modal tertutup sebelum reload
     setTimeout(() => {
       loadData();
@@ -405,8 +405,6 @@ export default function Dashboard() {
         divisions={divisions}
         onSuccess={handleFormSuccess}
       />
-
-
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

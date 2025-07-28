@@ -29,13 +29,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // Division management (add/edit only, no delete)
     Route::post('divisions', [DivisionController::class, 'store']); // Create division
     Route::put('divisions/{id}', [DivisionController::class, 'update']); // Update division
-    
+
     // Employee management (full CRUD)
     Route::post('employees', [EmployeeController::class, 'store']); // Tugas 4
     Route::put('employees/{id}', [EmployeeController::class, 'update']); // Tugas 5
     Route::delete('employees/{id}', [EmployeeController::class, 'destroy']); // Tugas 6
     Route::post('logout', [AuthController::class, 'logout']); // Tugas 7
-    
+
     // User profile routes
     Route::get('profile', [UserController::class, 'profile']);
     Route::put('profile', [UserController::class, 'updateProfile']);

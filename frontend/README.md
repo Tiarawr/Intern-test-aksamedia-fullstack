@@ -31,16 +31,19 @@ VITE_APP_NAME=Tiara Company
 ## Development
 
 Install dependencies:
+
 ```bash
 npm install
 ```
 
 Start development server:
+
 ```bash
 npm run dev
 ```
 
 Build for production:
+
 ```bash
 npm run build
 ```
@@ -56,6 +59,7 @@ npm run build
 ### Environment Variables for Production
 
 In Vercel dashboard, add these environment variables:
+
 - `VITE_API_URL`: `https://your-backend-domain.com/api`
 - `VITE_APP_NAME`: `Tiara Company`
 
@@ -75,6 +79,7 @@ src/
 ## API Integration
 
 The frontend communicates with Laravel backend via REST API:
+
 - Authentication endpoints
 - Employee CRUD operations
 - Division management

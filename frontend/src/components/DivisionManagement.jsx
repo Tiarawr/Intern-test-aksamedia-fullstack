@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Plus, Search, Edit, Briefcase } from "lucide-react";
 import { divisionsAPI } from "../../services/api";
-import { useTheme } from "../contexts/ThemeContext";
 import DivisionFormModal from "./DivisionFormModal";
 
 // Notification Component
@@ -77,7 +76,6 @@ export default function DivisionManagement() {
   const [isLoading, setIsLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedDivision, setSelectedDivision] = useState(null);
-  const { isDark } = useTheme();
 
   // Notification state
   const [notif, setNotif] = useState({
@@ -137,7 +135,7 @@ export default function DivisionManagement() {
   };
 
   return (
-    <div className={`p-6 ${isDark ? "text-white" : "text-gray-900"}`}>
+    <div className="p-6 text-gray-900 dark:text-white">
       {/* Notification */}
       <Notification
         show={notif.show}
@@ -150,7 +148,7 @@ export default function DivisionManagement() {
       {/* Header */}
       <div className="mb-6">
         <h2 className="text-2xl font-bold mb-2">Manajemen Divisi</h2>
-        <p className={`${isDark ? "text-gray-400" : "text-gray-600"}`}>
+        <p className="text-gray-600 dark:text-gray-400">
           Kelola divisi perusahaan
         </p>
       </div>
@@ -159,21 +157,13 @@ export default function DivisionManagement() {
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         {/* Search */}
         <div className="relative flex-1">
-          <Search
-            className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
-              isDark ? "text-gray-400" : "text-gray-500"
-            }`}
-          />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" />
           <input
             type="text"
             placeholder="Cari divisi..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 transition-all ${
-              isDark
-                ? "border-gray-600 bg-gray-700 text-white focus:border-blue-500"
-                : "border-gray-200 bg-white text-gray-900 focus:border-blue-500"
-            } focus:ring-4 focus:ring-blue-500/20 focus:outline-none`}
+            className="w-full pl-10 pr-4 py-3 rounded-xl border-2 transition-all border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 focus:outline-none"
           />
         </div>
 
@@ -195,11 +185,7 @@ export default function DivisionManagement() {
       ) : (
         <div className="grid gap-4">
           {divisions.length === 0 ? (
-            <div
-              className={`text-center py-12 ${
-                isDark ? "text-gray-400" : "text-gray-500"
-              }`}
-            >
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
               <Briefcase className="w-16 h-16 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-semibold mb-2">Belum ada divisi</p>
               <p>Tambahkan divisi pertama untuk memulai</p>
@@ -208,32 +194,16 @@ export default function DivisionManagement() {
             divisions.map((division) => (
               <div
                 key={division.id}
-                className={`p-4 rounded-xl border transition-all hover:shadow-lg ${
-                  isDark
-                    ? "bg-gray-800 border-gray-700 hover:border-gray-600"
-                    : "bg-white border-gray-200 hover:border-gray-300"
-                }`}
+                className="p-4 rounded-xl border transition-all hover:shadow-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div
-                      className={`p-2 rounded-lg ${
-                        isDark ? "bg-blue-900/30" : "bg-blue-100"
-                      }`}
-                    >
-                      <Briefcase
-                        className={`w-5 h-5 ${
-                          isDark ? "text-blue-400" : "text-blue-600"
-                        }`}
-                      />
+                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                      <Briefcase className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
                       <h3 className="font-semibold text-lg">{division.name}</h3>
-                      <p
-                        className={`text-sm ${
-                          isDark ? "text-gray-400" : "text-gray-500"
-                        }`}
-                      >
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
                         ID: {division.id}
                       </p>
                     </div>
@@ -242,11 +212,7 @@ export default function DivisionManagement() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => handleEditDivision(division)}
-                      className={`p-2 rounded-lg transition-colors ${
-                        isDark
-                          ? "hover:bg-gray-700 text-gray-400 hover:text-blue-400"
-                          : "hover:bg-gray-100 text-gray-500 hover:text-blue-600"
-                      }`}
+                      className="p-2 rounded-lg transition-colors hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400"
                       title="Edit Divisi"
                     >
                       <Edit className="w-4 h-4" />

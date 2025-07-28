@@ -1,67 +1,70 @@
-import { useState, useEffect } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { userAPI } from '../../services/api';
+import { useState, useEffect } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { userAPI } from "../../services/api";
 
 const EditProfile = ({ isOpen, onClose }) => {
   const { user, setUser } = useAuth();
   const [formData, setFormData] = useState({
-    name: '',
-    username: '',
-    email: '',
-    phone: '',
-    current_password: '',
-    new_password: '',
-    new_password_confirmation: ''
+    name: "",
+    username: "",
+    email: "",
+    phone: "",
+    current_password: "",
+    new_password: "",
+    new_password_confirmation: "",
   });
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
   const [showPasswords, setShowPasswords] = useState(false);
 
   // Load user data when modal opens
   useEffect(() => {
     if (isOpen && user) {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        name: user.name || '',
-        username: user.username || '',
-        email: user.email || '',
-        phone: user.phone || '',
-        current_password: '',
-        new_password: '',
-        new_password_confirmation: ''
+        name: user.name || "",
+        username: user.username || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        current_password: "",
+        new_password: "",
+        new_password_confirmation: "",
       }));
-      setMessage('');
-      setError('');
+      setMessage("");
+      setError("");
     }
   }, [isOpen, user]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setMessage('');
-    setError('');
+    setMessage("");
+    setError("");
 
     // Validation
-    if (formData.new_password && formData.new_password !== formData.new_password_confirmation) {
-      setError('New passwords do not match');
+    if (
+      formData.new_password &&
+      formData.new_password !== formData.new_password_confirmation
+    ) {
+      setError("New passwords do not match");
       setLoading(false);
       return;
     }
 
     try {
       const response = await userAPI.updateProfile(formData);
-      
-      if (response.status === 'success') {
-        setMessage('Profile updated successfully!');
+
+      if (response.status === "success") {
+        setMessage("Profile updated successfully!");
         // Update user context with new data
         setUser(response.data);
         setTimeout(() => {
@@ -69,7 +72,7 @@ const EditProfile = ({ isOpen, onClose }) => {
         }, 2000);
       }
     } catch (err) {
-      setError(err.message || 'Failed to update profile');
+      setError(err.message || "Failed to update profile");
     } finally {
       setLoading(false);
     }
@@ -79,8 +82,10 @@ const EditProfile = ({ isOpen, onClose }) => {
 
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl"
-           onClick={(e) => e.stopPropagation()}>
+      <div
+        className="bg-white dark:bg-gray-800 p-6 rounded-lg w-full max-w-md max-h-[90vh] overflow-y-auto shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
             Edit Profile
@@ -89,8 +94,18 @@ const EditProfile = ({ isOpen, onClose }) => {
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -179,7 +194,7 @@ const EditProfile = ({ isOpen, onClose }) => {
                 onClick={() => setShowPasswords(!showPasswords)}
                 className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
               >
-                {showPasswords ? 'Hide' : 'Show'} Password Fields
+                {showPasswords ? "Hide" : "Show"} Password Fields
               </button>
             </div>
 
@@ -250,9 +265,24 @@ const EditProfile = ({ isOpen, onClose }) => {
             >
               {loading ? (
                 <>
-                  <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  <svg
+                    className="animate-spin h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
                   </svg>
                   <span>Updating...</span>
                 </>

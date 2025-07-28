@@ -1,13 +1,13 @@
-import React from 'react';
-import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
+import React from "react";
+import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 
-const ModalWrapper = ({ 
-  isOpen, 
-  onClose, 
-  children, 
+const ModalWrapper = ({
+  isOpen,
+  onClose,
+  children,
   className = "",
   overlayClassName = "",
-  preventCloseOnOverlayClick = false 
+  preventCloseOnOverlayClick = false,
 }) => {
   // Lock body scroll when modal is open
   useBodyScrollLock(isOpen);
@@ -29,7 +29,9 @@ const ModalWrapper = ({
       />
 
       {/* Modal container */}
-      <div className={`relative w-full max-w-md transform transition-all duration-300 scale-100 my-8 ${className}`}>
+      <div
+        className={`relative w-full max-w-md transform transition-all duration-300 scale-100 my-8 ${className}`}
+      >
         {children}
       </div>
     </div>

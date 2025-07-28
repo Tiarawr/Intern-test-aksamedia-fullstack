@@ -11,11 +11,11 @@ class NormalizeJson
     {
         if ($request->isJson() && $request->getContent()) {
             $content = $request->getContent();
-            
+
             // Clean trailing commas from JSON
             $cleanedContent = preg_replace('/,\s*}/', '}', $content);
             $cleanedContent = preg_replace('/,\s*]/', ']', $cleanedContent);
-            
+
             // Only replace if content changed
             if ($content !== $cleanedContent) {
                 // Create new request instance with cleaned JSON

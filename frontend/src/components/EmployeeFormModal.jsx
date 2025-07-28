@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { X, Upload, User, Phone, Briefcase, Camera } from "lucide-react";
 import { employeesAPI } from "../../services/api";
-import { useTheme } from "../contexts/ThemeContext";
 import { useBodyScrollLock } from "../hooks/useBodyScrollLock";
 
 // Helper function to get full image URL
 const getImageUrl = (imagePath) => {
   if (!imagePath) return null;
-  if (imagePath.startsWith('http')) return imagePath; // Already full URL
-  if (imagePath.startsWith('data:')) return imagePath; // Base64 data URL
+  if (imagePath.startsWith("http")) return imagePath; // Already full URL
+  if (imagePath.startsWith("data:")) return imagePath; // Base64 data URL
   return `http://127.0.0.1:8000/storage/${imagePath}`;
 };
 
@@ -29,7 +28,6 @@ export default function EmployeeFormModal({
   const [imagePreview, setImagePreview] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
-  const { isDark } = useTheme();
 
   // Lock body scroll when modal is open
   useBodyScrollLock(isOpen);
@@ -171,37 +169,17 @@ export default function EmployeeFormModal({
       />
 
       {/* Modal container */}
-      <div
-        className={`relative w-full max-w-md transform transition-all duration-300 scale-100 my-8 ${
-          isDark ? "text-white" : "text-gray-900"
-        }`}
-      >
+      <div className="relative w-full max-w-md transform transition-all duration-300 scale-100 my-8 text-gray-900 dark:text-white">
         {/* Modal panel */}
-        <div
-          className={`relative rounded-2xl shadow-2xl border ${
-            isDark
-              ? "bg-gray-800 border-gray-700"
-              : "bg-white border-gray-200"
-          } overflow-hidden`}
-        >
+        <div className="relative rounded-2xl shadow-2xl border bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 overflow-hidden">
           {/* Header with gradient */}
-          <div
-            className={`relative px-6 py-5 ${
-              isDark
-                ? "bg-gradient-to-r from-gray-800 to-gray-700"
-                : "bg-gradient-to-r from-blue-50 to-indigo-50"
-            }`}
-          >
+          <div className="relative px-6 py-5 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <h3
-                  className="text-xl font-bold text-gray-900 dark:text-white"
-                >
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">
                   {employee ? "Edit Karyawan" : "Tambah Karyawan"}
                 </h3>
-                <p
-                  className="text-sm mt-1 text-gray-600 dark:text-gray-300"
-                >
+                <p className="text-sm mt-1 text-gray-600 dark:text-gray-300">
                   {employee
                     ? "Perbarui informasi karyawan"
                     : "Tambahkan karyawan baru"}
@@ -209,11 +187,7 @@ export default function EmployeeFormModal({
               </div>
               <button
                 onClick={onClose}
-                className={`p-2 rounded-full transition-colors ${
-                  isDark
-                    ? "hover:bg-gray-600 text-gray-300 hover:text-white"
-                    : "hover:bg-gray-100 text-gray-500 hover:text-gray-700"
-                }`}
+                className="p-2 rounded-full transition-colors hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -244,18 +218,8 @@ export default function EmployeeFormModal({
                       </div>
                     </div>
                   ) : (
-                    <div
-                      className={`w-24 h-24 rounded-full flex items-center justify-center border-2 border-dashed transition-colors group-hover:border-blue-400 ${
-                        isDark
-                          ? "bg-gray-700 border-gray-600"
-                          : "bg-gray-100 border-gray-300"
-                      }`}
-                    >
-                      <Camera
-                        className={`w-8 h-8 ${
-                          isDark ? "text-gray-400" : "text-gray-500"
-                        } group-hover:text-blue-500 transition-colors`}
-                      />
+                    <div className="w-24 h-24 rounded-full flex items-center justify-center border-2 border-dashed transition-colors group-hover:border-blue-400 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600">
+                      <Camera className="w-8 h-8 text-gray-500 dark:text-gray-400 group-hover:text-blue-500 transition-colors" />
                     </div>
                   )}
                   <input
@@ -265,41 +229,27 @@ export default function EmployeeFormModal({
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
                 </div>
-                <p
-                  className={`text-sm mt-2 ${
-                    isDark ? "text-gray-400" : "text-gray-600"
-                  }`}
-                >
+                <p className="text-sm mt-2 text-gray-600 dark:text-gray-400">
                   Klik untuk upload foto
                 </p>
               </div>
 
               {/* Name Input */}
               <div className="space-y-2">
-                <label
-                  className={`block text-sm font-semibold ${
-                    isDark ? "text-gray-200" : "text-gray-700"
-                  }`}
-                >
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
                   Nama Lengkap *
                 </label>
                 <div className="relative">
-                  <User
-                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
-                      isDark ? "text-gray-400" : "text-gray-500"
-                    }`}
-                  />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" />
                   <input
                     type="text"
                     name="name"
                     value={formData.name}
                     onChange={handleInputChange}
-                    className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 transition-all ${
+                    className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
                       errors.name
                         ? "border-red-400 focus:border-red-500"
-                        : isDark
-                        ? "border-gray-600 bg-gray-700 text-white focus:border-blue-500"
-                        : "border-gray-200 bg-white text-gray-900 focus:border-blue-500"
+                        : "border-gray-200 dark:border-gray-600 focus:border-blue-500"
                     } focus:ring-4 focus:ring-blue-500/20 focus:outline-none`}
                     placeholder="Masukkan nama lengkap"
                   />
@@ -314,30 +264,20 @@ export default function EmployeeFormModal({
 
               {/* Phone Input */}
               <div className="space-y-2">
-                <label
-                  className={`block text-sm font-semibold ${
-                    isDark ? "text-gray-200" : "text-gray-700"
-                  }`}
-                >
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
                   Nomor Telepon *
                 </label>
                 <div className="relative">
-                  <Phone
-                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
-                      isDark ? "text-gray-400" : "text-gray-500"
-                    }`}
-                  />
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" />
                   <input
                     type="tel"
                     name="phone"
                     value={formData.phone}
                     onChange={handleInputChange}
-                    className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 transition-all ${
+                    className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
                       errors.phone
                         ? "border-red-400 focus:border-red-500"
-                        : isDark
-                        ? "border-gray-600 bg-gray-700 text-white focus:border-blue-500"
-                        : "border-gray-200 bg-white text-gray-900 focus:border-blue-500"
+                        : "border-gray-200 dark:border-gray-600 focus:border-blue-500"
                     } focus:ring-4 focus:ring-blue-500/20 focus:outline-none`}
                     placeholder="+62 812 3456 7890"
                   />
@@ -352,29 +292,19 @@ export default function EmployeeFormModal({
 
               {/* Division Select */}
               <div className="space-y-2">
-                <label
-                  className={`block text-sm font-semibold ${
-                    isDark ? "text-gray-200" : "text-gray-700"
-                  }`}
-                >
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
                   Divisi *
                 </label>
                 <div className="relative">
-                  <Briefcase
-                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${
-                      isDark ? "text-gray-400" : "text-gray-500"
-                    }`}
-                  />
+                  <Briefcase className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-500 dark:text-gray-400" />
                   <select
                     name="division"
                     value={formData.division}
                     onChange={handleInputChange}
-                    className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 transition-all appearance-none ${
+                    className={`w-full pl-10 pr-4 py-3 rounded-xl border-2 transition-all appearance-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
                       errors.division
                         ? "border-red-400 focus:border-red-500"
-                        : isDark
-                        ? "border-gray-600 bg-gray-700 text-white focus:border-blue-500"
-                        : "border-gray-200 bg-white text-gray-900 focus:border-blue-500"
+                        : "border-gray-200 dark:border-gray-600 focus:border-blue-500"
                     } focus:ring-4 focus:ring-blue-500/20 focus:outline-none`}
                   >
                     <option value="">Pilih Divisi</option>
@@ -395,11 +325,7 @@ export default function EmployeeFormModal({
 
               {/* Position Input */}
               <div className="space-y-2">
-                <label
-                  className={`block text-sm font-semibold ${
-                    isDark ? "text-gray-200" : "text-gray-700"
-                  }`}
-                >
+                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-200">
                   Posisi/Jabatan *
                 </label>
                 <input
@@ -407,12 +333,10 @@ export default function EmployeeFormModal({
                   name="position"
                   value={formData.position}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all ${
+                  className={`w-full px-4 py-3 rounded-xl border-2 transition-all bg-white dark:bg-gray-700 text-gray-900 dark:text-white ${
                     errors.position
                       ? "border-red-400 focus:border-red-500"
-                      : isDark
-                      ? "border-gray-600 bg-gray-700 text-white focus:border-blue-500"
-                      : "border-gray-200 bg-white text-gray-900 focus:border-blue-500"
+                      : "border-gray-200 dark:border-gray-600 focus:border-blue-500"
                   } focus:ring-4 focus:ring-blue-500/20 focus:outline-none`}
                   placeholder="Software Engineer, Manager, dll"
                 />
@@ -427,22 +351,12 @@ export default function EmployeeFormModal({
           </div>
 
           {/* Footer with action buttons */}
-          <div
-            className={`px-6 py-4 border-t ${
-              isDark
-                ? "bg-gray-800/50 border-gray-700"
-                : "bg-gray-50/50 border-gray-200"
-            }`}
-          >
+          <div className="px-6 py-4 border-t bg-gray-50/50 dark:bg-gray-800/50 border-gray-200 dark:border-gray-700">
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className={`flex-1 px-4 py-3 rounded-xl font-semibold transition-all ${
-                  isDark
-                    ? "bg-gray-700 text-gray-300 hover:bg-gray-600 border border-gray-600"
-                    : "bg-white text-gray-700 hover:bg-gray-50 border border-gray-300"
-                } focus:ring-4 focus:ring-gray-500/20 focus:outline-none`}
+                className="flex-1 px-4 py-3 rounded-xl font-semibold transition-all bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 focus:ring-4 focus:ring-gray-500/20 focus:outline-none"
               >
                 Batal
               </button>
